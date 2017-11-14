@@ -1,20 +1,19 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.1.0911
+ * @version 1.1.0901
  *
- * Plugin Name: WooCommerce ECPay Payment
+ * Plugin Name: ECPay Payment
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.1.0911
+ * Version: 1.1.0901
  * Author: ECPay Green World FinTech Service Co., Ltd. 
  * Author URI: https://www.ecpay.com.tw
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
-require_once(ABSPATH . 'wp-admin/includes/file.php');
 
 /**
  * Required minimums and constants
@@ -166,7 +165,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 		 */
 		public function add_gateways( $methods ) {
 			$methods[] = 'WC_Gateway_Ecpay';
-			$methods[] = 'WC_Gateway_Ecpay_DCA';
+            $methods[] = 'WC_Gateway_Ecpay_DCA';
 			return $methods;
 		}
 
