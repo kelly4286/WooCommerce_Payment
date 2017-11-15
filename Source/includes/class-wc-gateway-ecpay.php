@@ -686,9 +686,9 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                                     $i++;
                                     echo '<tr class="account">
                                         <td class="sort"></td>
-                                        <td><input type="text" class="fieldPeriodType" value="' . esc_attr( $dca['periodType'] ) . '" name="periodType[' . $i . ']" required /></td>
-                                        <td><input type="number" class="fieldFrequency" value="' . esc_attr( $dca['frequency'] ) . '" name="frequency[' . $i . ']" required /></td>
-                                        <td><input type="number" class="fieldExecTimes" value="' . esc_attr( $dca['execTimes'] ) . '" name="execTimes[' . $i . ']" required /></td>
+                                        <td><input type="text" class="fieldPeriodType" value="' . esc_attr( $dca['periodType'] ) . '" name="periodType[' . $i . ']" maxlength="1" required /></td>
+                                        <td><input type="number" class="fieldFrequency" value="' . esc_attr( $dca['frequency'] ) . '" name="frequency[' . $i . ']"  min="1" max="365" required /></td>
+                                        <td><input type="number" class="fieldExecTimes" value="' . esc_attr( $dca['execTimes'] ) . '" name="execTimes[' . $i . ']"  min="2" max="999" required /></td>
                                     </tr>';
                                 }
                             }
@@ -704,44 +704,34 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                     </tfoot>
                 </table>
                 <p class="description"><?php echo __('Don\'t forget to save modify.', 'ecpay'); ?></p>
-                <script type="text/javascript">
+                <script>
                     jQuery(function() {
                         jQuery('#ecpay_dca').on( 'click', 'a.add', function() {
                             var size = jQuery('#ecpay_dca').find('tbody .account').length;
 
                             jQuery('<tr class="account">\
                                     <td class="sort"></td>\
-                                    <td><input type="text" class="fieldPeriodType" name="periodType[' + size + ']" required /></td>\
-                                    <td><input type="number" class="fieldFrequency" name="frequency[' + size + ']" required /></td>\
-                                    <td><input type="number" class="fieldExecTimes" name="execTimes[' + size + ']" required /></td>\
+                                    <td><input type="text" class="fieldPeriodType" name="periodType[' + size + ']" maxlength="1" required /></td>\
+                                    <td><input type="number" class="fieldFrequency" name="frequency[' + size + ']" min="1" max="365" required /></td>\
+                                    <td><input type="number" class="fieldExecTimes" name="execTimes[' + size + ']" min="2" max="999" required /></td>\
                                 </tr>').appendTo('#ecpay_dca table tbody');
 
                             return false;
                         });
 
                         jQuery('#ecpay_dca').on( 'blur', 'input', function() {
-                            var size = jQuery('#ecpay_dca').find('tbody .account').length;
+                            let field = this.value.trim();
+                            let indexStart = this.name.search(/[[]/g);
+                            let indexEnd = this.name.search(/[\]]/g);
+                            let fieldIndex = this.name.substring(indexStart + 1, indexEnd);
+                            let fieldPeriodType = document.getElementsByName('periodType[' + fieldIndex + ']')[0].value;
 
-                            var fieldPeriodType = document.getElementsByClassName('fieldPeriodType');
-                            var fieldFrequency = document.getElementsByClassName('fieldFrequency');
-                            var fieldExecTimes = document.getElementsByClassName('fieldExecTimes');
-
-                            for (var i = 0; i < size; i++) {
-                                if (
-                                    fieldPeriodType[i].value.length !== 0
-                                    && fieldFrequency[i].value.length !== 0
-                                    && fieldExecTimes[i].value.length !== 0
-                                ) {
-                                    if (validateFields.periodType(fieldPeriodType[i].value) === false) {
-                                        alert('<?php echo __('Invalid Peroid Type.', 'ecpay'); ?>');
-                                    }
-                                    if (validateFields.frequency(fieldPeriodType[i].value, fieldFrequency[i].value) === false) {
-                                        alert('<?php echo __('Invalid Frequency.', 'ecpay'); ?>');
-                                    }
-                                    if (validateFields.execTimes(fieldPeriodType[i].value, fieldExecTimes[i].value) === false) {
-                                        alert('<?php echo __('Invalid Execute Times.', 'ecpay'); ?>');
-                                    }
-                                }
+                            if (
+                                (validateFields.periodType(field) === false && this.className === 'fieldPeriodType') ||
+                                (validateFields.frequency(fieldPeriodType, field) === false && this.className === 'fieldFrequency') ||
+                                (validateFields.execTimes(fieldPeriodType, field) === false && this.className === 'fieldExecTimes')
+                            ){
+                                this.value = '';
                             }
                         });
                     });
@@ -754,7 +744,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
 
                     var validateFields = {
                         periodType: function(field) {
-                            return (data.periodType.indexOf(field) != -1);
+                            return (data.periodType.indexOf(field) !== -1);
                         },
                         frequency: function(periodType, field) {
                             let maxFrequency = parseInt(data.frequency[data.periodType.indexOf(periodType)], 10);
