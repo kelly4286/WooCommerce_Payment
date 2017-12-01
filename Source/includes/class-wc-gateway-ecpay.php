@@ -163,8 +163,8 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                 $aio->HashIV            = $this->ecpay_hash_iv;
                 $aio->ServiceURL        = $service_url;
                 $aio->Send['ReturnURL'] = add_query_arg('wc-api', 'WC_Gateway_ECPay', home_url('/'));
-                $aio->Send['ClientBackURL'] = home_url('?page_id=' . get_option('woocommerce_myaccount_page_id') . '&view-order=' . $order->id);
-                $aio->Send['MerchantTradeNo'] .= $order->id;
+                $aio->Send['ClientBackURL'] = home_url('?page_id=' . get_option('woocommerce_myaccount_page_id') . '&view-order=' . $order->get_id());
+                $aio->Send['MerchantTradeNo'] .= $order->get_id();
                 $aio->Send['MerchantTradeDate'] = date('Y/m/d H:i:s');
 
                 // 接收額外回傳參數 提供電子發票使用 v1.1.0911
@@ -177,7 +177,8 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                     array(
                         'Name'      => '網路商品一批',
                         'Price'     => $aio->Send['TotalAmount'],
-                        'Currency'  => $order->get_order_currency(),
+                        'Currency'  => $order->get_currency(),
+                        'URL'       => '',
                         'Quantity'  => 1
                     )
                 );
@@ -189,7 +190,9 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                 $choose_payment = '';
                 $choose_installment = '';
                 if (isset($notes[0])) {
-                    list($choose_payment, $choose_installment) = explode('_', $notes[0]->comment_content);
+                    $chooseParam = explode('_', $notes[0]->comment_content);
+                    $choose_payment =isset($chooseParam[0]) ? $chooseParam[0] : '';
+                    $choose_installment = isset($chooseParam[1]) ? $chooseParam[1] : '';
                 }
                 $aio->Send['ChoosePayment'] = $choose_payment;
                 
@@ -502,7 +505,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         // 加入信用卡後四碼，提供電子發票開立使用 v1.1.0911 
         if(isset($ecpay_feedback['card4no']) && !empty($ecpay_feedback['card4no']))
         {
-            add_post_meta( $order->id, 'card4no', $ecpay_feedback['card4no'], true);
+            add_post_meta( $order->get_id(), 'card4no', $ecpay_feedback['card4no'], true);
         }
 
         // call invoice model
@@ -529,10 +532,10 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
 
                 // 記錄目前成功付款到第幾次 
                 $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->id, '_total_success_times', $nTotalSuccessTimes );
+                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
                 if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_allpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_allpay_invoice_auto'] == 'auto' ) {
-                    do_action('allpay_auto_invoice', $order->id, $ecpay_feedback['SimulatePaid']);
+                    do_action('allpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
                 }
             }
         } elseif ($invoice_active_ecpay == 1 && $invoice_active_allpay == 0) { // ecpay
@@ -542,10 +545,10 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
 
                 // 記錄目前成功付款到第幾次 
                 $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->id, '_total_success_times', $nTotalSuccessTimes );
+                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
                 if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
-                    do_action('ecpay_auto_invoice', $order->id, $ecpay_feedback['SimulatePaid']);
+                    do_action('ecpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
                 }
             }
         }
@@ -704,6 +707,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                     </tfoot>
                 </table>
                 <p class="description"><?php echo __('Don\'t forget to save modify.', 'ecpay'); ?></p>
+                <p id="fieldsNotification" style="display: none;"><?php echo __('ECPay paid automatically details has been repeatedly, please confirm again.', 'ecpay'); ?></p>
                 <script>
                     jQuery(function() {
                         jQuery('#ecpay_dca').on( 'click', 'a.add', function() {
@@ -734,13 +738,67 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                                 this.value = '';
                             }
                         });
+
+                        jQuery('#ecpay_dca').on( 'blur', 'tbody', function() {
+                            fields.process();
+                        });
+
+                        jQuery('body').on( 'click', '#mainform', function() {
+                            fields.process();
+                        });
                     });
 
                     var data = {
-                        'periodType': ['D', 'M', 'Y'],
-                        'frequency': ['365', '12', '1'],
-                        'execTimes': ['999', '99', '9']
+                        periodType: ['D', 'M', 'Y'],
+                        frequency: ['365', '12', '1'],
+                        execTimes: ['999', '99', '9'],
                     };
+
+                    var fields = {
+                        get: function() {
+                            var field = jQuery('#ecpay_dca').find('tbody .account td input');
+                            var fieldsInput = [];
+                            var fieldsTmp = [];
+                            var i = 0;
+                            Object.keys(field).forEach(function(key) {
+                                if (field[key].value != null) {
+                                    i++;
+                                    if (i % 3 == 0) {
+                                        fieldsTmp.push(field[key].value);
+                                        fieldsInput.push(fieldsTmp);
+                                        fieldsTmp = [];
+                                    } else {
+                                        fieldsTmp.push(field[key].value);
+                                    }
+                                }
+                            });
+
+                            return fieldsInput;
+                        },
+                        check: function(inputs) {
+                            var errorFlag = 0;
+                            inputs.forEach(function(key1, index1) {
+                                inputs.forEach(function(key2, index2) {
+                                    if (index1 !== index2) {
+                                        if (key1[0] === key2[0] && key1[1] === key2[1] && key1[2] === key2[2]) {
+                                            errorFlag++;
+                                        }
+                                    }
+                                })
+                            });
+
+                            return errorFlag;
+                        },
+                        process: function() {
+                            if (fields.check(fields.get()) > 0) {
+                                document.getElementById('fieldsNotification').style = 'color: #ff0000;';
+                                document.querySelector('input[name="save"]').disabled = true;
+                            } else {
+                                document.getElementById('fieldsNotification').style = 'display: none;';
+                                document.querySelector('input[name="save"]').disabled = false;
+                            }
+                        }
+                    }
 
                     var validateFields = {
                         periodType: function(field) {
@@ -947,9 +1005,10 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
             array_push(
                 $aio->Send['Items'],
                 array(
-                    'Name' => '網路商品一批',
-                    'Price' => $aio->Send['TotalAmount'],
-                    'Currency' => $order->get_order_currency(),
+                    'Name'     => '網路商品一批',
+                    'Price'    => $aio->Send['TotalAmount'],
+                    'Currency' => $order->get_currency(),
+                    'URL'      => '',
                     'Quantity' => 1
                 )
             );
@@ -1096,7 +1155,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         // 加入信用卡後四碼，提供電子發票開立使用 v1.1.0911 
         if(isset($ecpay_feedback['card4no']) && !empty($ecpay_feedback['card4no']))
         {
-            add_post_meta( $order->id, 'card4no', $ecpay_feedback['card4no'], true);
+            add_post_meta( $order->get_id(), 'card4no', $ecpay_feedback['card4no'], true);
         }
 
         // call invoice model
@@ -1123,10 +1182,10 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
 
                 // 記錄目前成功付款到第幾次 
                 $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->id, '_total_success_times', $nTotalSuccessTimes );
+                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
                 if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_allpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_allpay_invoice_auto'] == 'auto' ) {
-                    do_action('allpay_auto_invoice', $order->id, $ecpay_feedback['SimulatePaid']);
+                    do_action('allpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
                 }
             }
         } elseif ($invoice_active_ecpay == 1 && $invoice_active_allpay == 0) { // ecpay
@@ -1136,10 +1195,10 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
 
                 // 記錄目前成功付款到第幾次 
                 $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->id, '_total_success_times', $nTotalSuccessTimes );
+                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
                 if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
-                    do_action('ecpay_auto_invoice', $order->id, $ecpay_feedback['SimulatePaid']);
+                    do_action('ecpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
                 }
             }
         }

@@ -165,7 +165,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
         function order_details_payment_method($order)
         {
             $args = array( 
-                'post_id' => $order->id
+                'post_id' => $order->get_id()
             );
 
             $comments = get_comments($args);
