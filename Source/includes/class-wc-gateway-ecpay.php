@@ -44,6 +44,8 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         
         # Register a action to process the callback
         add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
+
+        add_action( 'woocommerce_thankyou_ecpay', array( $this, 'thankyou_page' ) );
     }
 
     /**
@@ -132,11 +134,11 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
             $ecpay_params = array(
                 'lable'         => get_option('blogname'),
                 'ajaxurl'       => admin_url().'admin-ajax.php',
-                'total'     => $order->get_total(),
-                'display_name'     => $gateway_settings['ecpay_apple_display_name'],
-                'order_id'     => $order_id,
-                'site_url'     => get_site_url(),
-                'server_https'     => $_SERVER['HTTPS'],
+                'total'         => $order->get_total(),
+                'display_name'  => $gateway_settings['ecpay_apple_display_name'],
+                'order_id'      => $order_id,
+                'site_url'      => get_site_url(),
+                'server_https'  => $_SERVER['HTTPS'],
                 'test_mode'     => $this->ecpay_test_mode
             );
 
@@ -163,7 +165,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                 $aio->HashIV            = $this->ecpay_hash_iv;
                 $aio->ServiceURL        = $service_url;
                 $aio->Send['ReturnURL'] = add_query_arg('wc-api', 'WC_Gateway_ECPay', home_url('/'));
-                $aio->Send['ClientBackURL'] = home_url('?page_id=' . get_option('woocommerce_myaccount_page_id') . '&view-order=' . $order->get_id());
+                $aio->Send['ClientBackURL'] = $this->get_return_url($order);
                 $aio->Send['MerchantTradeNo'] .= $order->get_id();
                 $aio->Send['MerchantTradeDate'] = date('Y/m/d H:i:s');
 
@@ -178,12 +180,12 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                         'Name'      => '網路商品一批',
                         'Price'     => $aio->Send['TotalAmount'],
                         'Currency'  => $order->get_currency(),
+                        'Quantity'  => 1,
                         'URL'       => '',
-                        'Quantity'  => 1
                     )
                 );
                 
-                $aio->Send['TradeDesc'] = 'ecpay_module_woocommerce_v1.1.0901';
+                $aio->Send['TradeDesc'] = 'ecpay_module_woocommerce_v1.1.1207';
                 
                 # Get the chosen payment and installment
                 $notes = $order->get_customer_order_notes();
@@ -333,6 +335,13 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                     $comments .= $this->get_order_comments($ecpay_feedback);
                                     $comments .= $get_code_result_comments;
                                     $order->add_order_note($comments);
+
+                                    // 紀錄付款資訊提供感謝頁面使用
+                                    add_post_meta( $order->id, 'payment_method', 'ATM', true);
+                                    add_post_meta( $order->id, 'BankCode', $ecpay_feedback['BankCode'], true);
+                                    add_post_meta( $order->id, 'vAccount', $ecpay_feedback['vAccount'], true);
+                                    add_post_meta( $order->id, 'ExpireDate', $ecpay_feedback['ExpireDate'], true);
+
                                 } else {
                                     if (!$this->is_order_complete($order)) {
                                         $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
@@ -352,6 +361,15 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                     $comments .= $this->get_order_comments($ecpay_feedback);
                                     $comments .= $get_code_result_comments;
                                     $order->add_order_note($comments);
+
+                                    if($ecpay_payment_method == CVS )
+                                    {
+                                        // 紀錄付款資訊提供感謝頁面使用
+                                        add_post_meta( $order->id, 'payment_method', 'CVS', true);
+                                        add_post_meta( $order->id, 'PaymentNo', $ecpay_feedback['PaymentNo'], true);
+                                        add_post_meta( $order->id, 'ExpireDate', $ecpay_feedback['ExpireDate'], true);
+                                    }
+
                                 } else {
                                     if (!$this->is_order_complete($order)) {
                                         $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
@@ -553,6 +571,89 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
             }
         }
     }
+
+    /**
+    * Output for the order received page.
+    *
+    * @param int $order_id
+    */
+    public function thankyou_page( $order_id ) {
+
+        $this->payment_details( $order_id );
+
+    }
+
+
+    /**
+     * Get payment details and place into a list format.
+     *
+     * @param int $order_id
+     */
+    private function payment_details( $order_id = '' ) {
+
+        $account_html = ''; 
+        $has_details = false ;
+        $a_has_details = array();
+
+        $payment_method = get_post_meta($order_id, 'payment_method', true);
+
+        switch($payment_method) {
+            case ECPay_PaymentMethod::CVS:
+                $PaymentNo = get_post_meta($order_id, 'PaymentNo', true);
+                $ExpireDate = get_post_meta($order_id, 'ExpireDate', true);
+
+                $a_has_details = array(
+                    'PaymentNo' => array(
+                                'label' => __( 'PaymentNo', 'ecpay' ),
+                                'value' => $PaymentNo
+                            ),
+                    'ExpireDate' => array(
+                                'label' => __( 'ExpireDate', 'ecpay' ),
+                                'value' => $ExpireDate
+                            )
+                );
+
+                $has_details = true ;
+            break;
+
+            case ECPay_PaymentMethod::ATM:
+                $BankCode = get_post_meta($order_id, 'BankCode', true);
+                $vAccount = get_post_meta($order_id, 'vAccount', true);
+                $ExpireDate = get_post_meta($order_id, 'ExpireDate', true);
+
+                $a_has_details = array(
+                    'BankCode' => array(
+                                'label' => __( 'BankCode', 'ecpay' ),
+                                'value' => $BankCode
+                            ),
+                    'vAccount' => array(
+                                'label' => __( 'vAccount', 'ecpay' ),
+                                'value' => $vAccount
+                            ),
+                    'ExpireDate' => array(
+                                'label' => __( 'ExpireDate', 'ecpay' ),
+                                'value' => $ExpireDate
+                            )
+                );
+
+
+                $has_details = true ;
+            break;
+        }
+
+        $account_html .= '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">' . PHP_EOL;
+
+        foreach($a_has_details as $field_key => $field ) {
+            $account_html .= '<li class="' . esc_attr( $field_key ) . '">' . wp_kses_post( $field['label'] ) . ': <strong>' . wp_kses_post( wptexturize( $field['value'] ) ) . '</strong></li>' . PHP_EOL ;
+        }
+
+        $account_html .= '</ul>';
+
+
+        if ( $has_details ) {
+            echo '<section><h2>' . __( 'Payment details', 'ecpay' ) . '</h2>' . PHP_EOL . $account_html . '</section>';
+        }
+    }
 }
 
 class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
@@ -616,6 +717,8 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         
         # Register a action to process the callback
         add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
+
+        add_action( 'woocommerce_thankyou_ecpay', array( $this, 'thankyou_page' ) );
     }
     
     /**
@@ -993,7 +1096,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
             $aio->HashIV = $this->ecpay_hash_iv;
             $aio->ServiceURL = $service_url;
             $aio->Send['ReturnURL'] = add_query_arg('wc-api', 'WC_Gateway_ECPay', home_url('/'));
-            $aio->Send['ClientBackURL'] = home_url('?page_id=' . get_option('woocommerce_myaccount_page_id') . '&view-order=' . $order_id);
+            $aio->Send['ClientBackURL'] = $this->get_return_url($order);
             $aio->Send['MerchantTradeNo'] .= $order_id;
             $aio->Send['MerchantTradeDate'] = date('Y/m/d H:i:s');
 
@@ -1008,12 +1111,12 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                     'Name'     => '網路商品一批',
                     'Price'    => $aio->Send['TotalAmount'],
                     'Currency' => $order->get_currency(),
+                    'Quantity' => 1,
                     'URL'      => '',
-                    'Quantity' => 1
                 )
             );
             
-            $aio->Send['TradeDesc'] = 'ecpay_module_woocommerce_v1.1.0901';
+            $aio->Send['TradeDesc'] = 'ecpay_module_woocommerce_v1.1.1207';
             $notes = $order->get_customer_order_notes();
             $PeriodType = '';
             $Frequency = '';
@@ -1202,6 +1305,27 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                 }
             }
         }
+    }
+
+    /**
+    * Output for the order received page.
+    *
+    * @param int $order_id
+    */
+    public function thankyou_page( $order_id ) {
+
+        $this->payment_details( $order_id );
+
+    }
+
+
+    /**
+     * Get payment details and place into a list format.
+     *
+     * @param int $order_id
+     */
+    private function payment_details( $order_id = '' ) {
+
     }
 }
 

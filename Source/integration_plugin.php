@@ -1,12 +1,12 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.1.0911
+ * @version 1.1.180313
  *
  * Plugin Name: WooCommerce ECPay Payment
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.1.0911
+ * Version: 1.1.180313
  * Author: ECPay Green World FinTech Service Co., Ltd. 
  * Author URI: https://www.ecpay.com.tw
  */
@@ -106,23 +106,27 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
         static function get_environment_warning() {
 
             if ( version_compare( phpversion(), WC_ECPAY_MIN_PHP_VER, '<' ) ) {
-                $message = __( 'WooCommerce Ecpay Gateway - The minimum PHP version required for this plugin is %1$s. You are running %2$s.', 'ecpay' );
+                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s - The minimum PHP version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
 
-                return sprintf( $message, WC_ECPAY_MIN_PHP_VER, phpversion() );
+                return sprintf( $message, '<strong>', '</strong>', WC_ECPAY_MIN_PHP_VER, phpversion() );
             }
 
             if ( ! defined( 'WC_VERSION' ) ) {
-                return __( 'WooCommerce Ecpay Gateway  requires WooCommerce to be activated to work.', 'ecpay' );
+                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s requires WooCommerce to be activated to work.', 'ecpay' );
+
+                return sprintf( $message, '<strong>', '</strong>' );
             }
 
             if ( version_compare( WC_VERSION, WC_ECPAY_MIN_WC_VER, '<' ) ) {
-                $message = __( 'WooCommerce Ecpay Gateway  - The minimum WooCommerce version required for this plugin is %1$s. You are running %2$s.', 'ecpay' );
+                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s - The minimum WooCommerce version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
 
                 return sprintf( $message, WC_ECPAY_MIN_WC_VER, WC_VERSION );
             }
 
             if ( ! function_exists( 'curl_init' ) ) {
-                return __( 'WooCommerce Ecpay Gateway  - cURL is not installed.', 'ecpay' );
+                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s - cURL is not installed.', 'ecpay' );
+
+                return sprintf( $message, '<strong>', '</strong>' );
             }
 
             return false;
@@ -135,7 +139,12 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 
             foreach ( (array) $this->notices as $notice_key => $notice ) {
                 echo "<div class='" . esc_attr( $notice['class'] ) . "'><p>";
-                echo wp_kses( $notice['message'], array( 'a' => array( 'href' => array() ) ) );
+                echo wp_kses( $notice['message'], array( 
+                    'a' => array(
+                        'href' => array()
+                    ),
+                    'strong' => array(),
+                ) );
                 echo '</p></div>';
             }
         }
@@ -175,12 +184,14 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                 'Getting Code Result : (10100073)Get CVS Code Succeeded.',
                 'Getting Code Result : (2)Get VirtualAccount Succeeded'
             ];
-            foreach ($comments as $comment) {
-                if (
-                    (strpos($comment->comment_content, '(10100073)') && strpos($comment->comment_content, 'CVS')) ||
-                    (strpos($comment->comment_content, '(2)') && strpos($comment->comment_content, 'ATM'))
-                ) {
-                    $orderDetails = str_replace($search, '', $comment->comment_content);
+            if (is_array($comments)) {
+                foreach ($comments as $comment) {
+                    if (
+                        (strpos($comment->comment_content, '(10100073)') && strpos($comment->comment_content, 'CVS')) ||
+                        (strpos($comment->comment_content, '(2)') && strpos($comment->comment_content, 'ATM'))
+                    ) {
+                        $orderDetails = str_replace($search, '', $comment->comment_content);
+                    }
                 }
             }
 
