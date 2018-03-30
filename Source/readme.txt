@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, payment, 
 Requires at least: 4.5
 Tested up to: 4.8
 Requires PHP: 5.4 or later
-Stable tag: 1.2.1204
+Stable tag: 1.1.180313
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,7 +54,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 = 自動安裝 =
 1. 登入至您的 WordPress dashboard，拜訪 "Plugins menu" 並點擊 "Add"。
-2. 在"search field"中輸入"ECPay Payment"，然後點擊搜尋。
+2. 在"search field"中輸入"ECPay Payment for WooCommerce"，然後點擊搜尋。
 3. 點擊 "安裝" 即可進行安裝。
 
 = 手動安裝 =
@@ -78,3 +78,8 @@ v1.1.1124
 
 v1.1.1201
 調整信用卡定期定額設定
+
+
+v1.1.180313
+1.調整金流成功交易，無法返回感謝頁，造成GA無法偵測問題，
+2.調整get_return_url 問題。
