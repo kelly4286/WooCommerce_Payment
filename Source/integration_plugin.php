@@ -1,12 +1,12 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.1.180313
+ * @version 1.1.180503
  *
  * Plugin Name: WooCommerce ECPay Payment
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.1.180313
+ * Version: 1.1.180503
  * Author: ECPay Green World FinTech Service Co., Ltd. 
  * Author URI: https://www.ecpay.com.tw
  */

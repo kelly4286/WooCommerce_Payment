@@ -312,6 +312,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                     $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
                                 } else {
                                     # The order already paid or not in the standard procedure, do nothing
+                                    throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
                                 }
                             }
                             break;
@@ -323,6 +324,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                     $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
                                 } else {
                                     # The order already paid or not in the standard procedure, do nothing
+                                    throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
                                 }
                             }
                             break;
@@ -347,6 +349,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                         $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
                                     } else {
                                         # The order already paid or not in the standard procedure, do nothing
+                                        throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
                                     }
                                 }
                             }
@@ -375,6 +378,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                         $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
                                     } else {
                                         # The order already paid or not in the standard procedure, do nothing
+                                        throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
                                     }
                                 }
                             }
