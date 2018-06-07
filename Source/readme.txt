@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, payment, 
 Requires at least: 4.5
 Tested up to: 4.8
 Requires PHP: 5.4 or later
-Stable tag: 1.1.180313
+Stable tag: 1.1.180528
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
