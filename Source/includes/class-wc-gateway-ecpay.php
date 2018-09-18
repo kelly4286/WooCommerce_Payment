@@ -46,6 +46,21 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
 
         add_action( 'woocommerce_thankyou_ecpay', array( $this, 'thankyou_page' ) );
+
+        add_filter('woocommerce_available_payment_gateways', array( $this, 'woocs_filter_gateways' ) );
+
+    }
+
+    /**
+    * 過濾重複付款
+    */
+    public function woocs_filter_gateways($gateway_list)
+    {
+       if(isset($_GET['pay_for_order']))
+       {
+            unset($gateway_list['ecpay']);
+       }
+       return $gateway_list;
     }
 
     /**
@@ -584,7 +599,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
 
         // call invoice model
         $invoice_active_ecpay = 0 ;
-        $invoice_active_allpay = 0 ;
+        $invoice_active_opay = 0 ;
 
         $active_plugins = (array) get_option( 'active_plugins', array() );
 
@@ -595,35 +610,33 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                 $invoice_active_ecpay = 1;
             }
 
-            if ((strpos($value,'/woocommerce-allpayinvoice.php') !== false)) {
-                $invoice_active_allpay = 1;
+            if ((strpos($value,'/woocommerce-opayinvoice.php') !== false)) {
+                $invoice_active_opay = 1;
             }
         }
 
-        if ($invoice_active_ecpay == 0 && $invoice_active_allpay == 1) { // allpay
-            if ( is_file( get_home_path().'/wp-content/plugins/allpay_invoice/woocommerce-allpayinvoice.php') ) {
-                $aConfig_Invoice = get_option('wc_allpayinvoice_active_model');
+        if ($invoice_active_ecpay == 0 && $invoice_active_opay == 1) { // opay
+            
+            $aConfig_Invoice = get_option('wc_opayinvoice_active_model');
 
-                // 記錄目前成功付款到第幾次 
-                $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
+            // 記錄目前成功付款到第幾次 
+            $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
+            update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
-                if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_allpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_allpay_invoice_auto'] == 'auto' ) {
-                    do_action('allpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
-                }
+            if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_opay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_opay_invoice_auto'] == 'auto' ) {
+                do_action('opay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
             }
-        } elseif ($invoice_active_ecpay == 1 && $invoice_active_allpay == 0) { // ecpay
+            
+        } elseif ($invoice_active_ecpay == 1 && $invoice_active_opay == 0) { // ecpay
         
-            if ( is_file( get_home_path().'/wp-content/plugins/ecpay_invoice/woocommerce-ecpayinvoice.php') ) {
-                $aConfig_Invoice = get_option('wc_ecpayinvoice_active_model');
+            $aConfig_Invoice = get_option('wc_ecpayinvoice_active_model');
 
-                // 記錄目前成功付款到第幾次 
-                $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
+            // 記錄目前成功付款到第幾次 
+            $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
+            update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
-                if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
-                    do_action('ecpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
-                }
+            if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
+                do_action('ecpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
             }
         }
     }
@@ -1319,7 +1332,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
 
         // call invoice model
         $invoice_active_ecpay = 0 ;
-        $invoice_active_allpay = 0 ;
+        $invoice_active_opay = 0 ;
 
         $active_plugins = (array) get_option( 'active_plugins', array() );
 
@@ -1330,36 +1343,35 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                 $invoice_active_ecpay = 1;
             }
 
-            if ((strpos($value,'/woocommerce-allpayinvoice.php') !== false)) {
-                $invoice_active_allpay = 1;
+            if ((strpos($value,'/woocommerce-opayinvoice.php') !== false)) {
+                $invoice_active_opay = 1;
             }
         }
 
-        if ($invoice_active_ecpay == 0 && $invoice_active_allpay == 1) { // allpay
-            if ( is_file( get_home_path().'/wp-content/plugins/allpay_invoice/woocommerce-allpayinvoice.php') ) {
-                $aConfig_Invoice = get_option('wc_allpayinvoice_active_model');
+        if ($invoice_active_ecpay == 0 && $invoice_active_opay == 1) { // opay
+                
+            $aConfig_Invoice = get_option('wc_opayinvoice_active_model');
 
-                // 記錄目前成功付款到第幾次 
-                $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
+            // 記錄目前成功付款到第幾次 
+            $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
+            update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
-                if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_allpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_allpay_invoice_auto'] == 'auto' ) {
-                    do_action('allpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
-                }
+            if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_opay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_opay_invoice_auto'] == 'auto' ) {
+                do_action('opay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
             }
-        } elseif ($invoice_active_ecpay == 1 && $invoice_active_allpay == 0) { // ecpay
+
+        } elseif ($invoice_active_ecpay == 1 && $invoice_active_opay == 0) { // ecpay
         
-            if ( is_file( get_home_path().'/wp-content/plugins/ecpay_invoice/woocommerce-ecpayinvoice.php') ) {
-                $aConfig_Invoice = get_option('wc_ecpayinvoice_active_model');
+            $aConfig_Invoice = get_option('wc_ecpayinvoice_active_model');
 
-                // 記錄目前成功付款到第幾次 
-                $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
-                update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
+            // 記錄目前成功付款到第幾次 
+            $nTotalSuccessTimes = ( isset($ecpay_feedback['TotalSuccessTimes']) && ( empty($ecpay_feedback['TotalSuccessTimes']) || $ecpay_feedback['TotalSuccessTimes'] == 1 ))  ? '' :  $ecpay_feedback['TotalSuccessTimes'] ;
+            update_post_meta($order->get_id(), '_total_success_times', $nTotalSuccessTimes );
 
-                if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
-                    do_action('ecpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
-                }
+            if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
+                do_action('ecpay_auto_invoice', $order->get_id(), $ecpay_feedback['SimulatePaid']);
             }
+            
         }
     }
 
