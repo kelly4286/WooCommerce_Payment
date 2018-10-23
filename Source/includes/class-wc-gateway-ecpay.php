@@ -59,6 +59,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
        if(isset($_GET['pay_for_order']))
        {
             unset($gateway_list['ecpay']);
+            unset($gateway_list['ecpay_dca']);
        }
        return $gateway_list;
     }
@@ -788,6 +789,21 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
 
         add_action( 'woocommerce_thankyou_ecpay', array( $this, 'thankyou_page' ) );
+
+         add_filter('woocommerce_available_payment_gateways', array( $this, 'woocs_filter_gateways' ) );
+    }
+
+    /**
+    * 過濾重複付款
+    */
+    public function woocs_filter_gateways($gateway_list)
+    {
+       if(isset($_GET['pay_for_order']))
+       {
+            unset($gateway_list['ecpay']);
+            unset($gateway_list['ecpay_dca']);
+       }
+       return $gateway_list;
     }
     
     /**
