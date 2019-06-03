@@ -460,7 +460,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         } catch (Exception $e) {
             $error = $e->getMessage();
             if (!empty($order)) {
-                $comments .= sprintf(__('Faild To Pay<br />Error : %s<br />', 'ecpay'), $error);
+                $comments .= sprintf(__('Failed To Pay<br />Error : %s<br />', 'ecpay'), $error);
                 $order->add_order_note($comments);
             }
             
@@ -1302,7 +1302,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         } catch (Exception $e) {
             $error = $e->getMessage();
             if (!empty($order)) {
-                $comments .= sprintf(__('Faild To Pay<br />Error : %s<br />', 'ecpay'), $error);
+                $comments .= sprintf(__('Failed To Pay<br />Error : %s<br />', 'ecpay'), $error);
                 $order->add_order_note($comments);
             }
             
