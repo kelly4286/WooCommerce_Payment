@@ -1,13 +1,13 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.1.180925
+ * @version 1.2.190807
  *
  * Plugin Name: WooCommerce ECPay Payment
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.1.180925
- * Author: ECPay Green World FinTech Service Co., Ltd. 
+ * Version: 1.2.190807
+ * Author: ECPay Green World FinTech Service Co., Ltd.
  * Author URI: https://www.ecpay.com.tw
  */
 
@@ -30,7 +30,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 {
 
     class WC_Ecpay_Payment {
-        
+
         /**
         *
         */
@@ -59,7 +59,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
             add_action( 'admin_notices', array( $this, 'admin_notices' ), 15 );
             add_action( 'plugins_loaded', array( $this, 'init' ) );
 
-            add_action('wp_footer', array( $this, 'ecpay_integration_plugin_init_payment_method' ) ); 
+            add_action('wp_footer', array( $this, 'ecpay_integration_plugin_init_payment_method' ) );
         }
 
 
@@ -139,7 +139,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 
             foreach ( (array) $this->notices as $notice_key => $notice ) {
                 echo "<div class='" . esc_attr( $notice['class'] ) . "'><p>";
-                echo wp_kses( $notice['message'], array( 
+                echo wp_kses( $notice['message'], array(
                     'a' => array(
                         'href' => array()
                     ),
@@ -159,9 +159,10 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
             }
 
             if ( class_exists( 'WC_Payment_Gateway_CC' ) ) {
-                include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Integration.php' );    // 載入SDK
+                include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Integration.php' );  // 載入SDK
                 include_once( dirname( __FILE__ ) . '/includes/class-wc-gateway-ecpay.php' );
                 include_once( dirname( __FILE__ ) . '/includes/class-wc-ecpay-apple-pay.php' );
+                include_once( dirname( __FILE__ ) . '/includes/helpers/ECPayPaymentHelper.php' ); // 載入Helper
             }
 
             // 載入語系檔
@@ -173,7 +174,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 
         function order_details_payment_method($order)
         {
-            $args = array( 
+            $args = array(
                 'post_id' => $order->get_id()
             );
 
@@ -226,7 +227,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
             <script>
                 (function(){
                     if (
-                        document.getElementById("shipping_option") !== null && 
+                        document.getElementById("shipping_option") !== null &&
                         typeof document.getElementById("shipping_option") !== "undefined"
                     ) {
                         if (window.addEventListener) {
@@ -240,14 +241,14 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                     var e = document.getElementById("shipping_option");
                     var shipping = e.options[e.selectedIndex].value;
                     var payment = document.getElementsByName('payment_method');
-                    
+
                     if (
                         shipping == "HILIFE_Collection" ||
                         shipping == "FAMI_Collection" ||
                         shipping == "UNIMART_Collection"
                     ) {
                         var i;
-                       
+
                         for (i = 0; i< payment.length; i++) {
                             if (payment[i].id != 'payment_method_ecpay_shipping_pay') {
                                 payment[i].style.display="none";
@@ -280,7 +281,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                         var i;
                         for (i = 0; i< payment.length; i++) {
                             if (payment[i].id != 'payment_method_ecpay_shipping_pay') {
-                                payment[i].style.display=""; 
+                                payment[i].style.display="";
 
                                 checkclass = document.getElementsByClassName("wc_payment_method " + payment[i].id).length;
 

@@ -48,23 +48,7 @@ return apply_filters( 'wc_ecpay_payment_settings',
 			'default' 	=> 'v77hoKGq4kWxNNIS'
 		),
 		'ecpay_payment_methods' => array(
-			'title' 	=> __( 'Payment Method', 'ecpay' ),
-			'type' 		=> 'multiselect',
-			'description' 	=> __( 'Press CTRL and the right button on the mouse to select multi payments.', 'ecpay' ),
-			'options' 	=> array(
-				'Credit' 	=> $this->get_payment_desc('Credit'),
-				'Credit_3' 	=> $this->get_payment_desc('Credit_3'),
-				'Credit_6' 	=> $this->get_payment_desc('Credit_6'),
-				'Credit_12' 	=> $this->get_payment_desc('Credit_12'),
-				'Credit_18' 	=> $this->get_payment_desc('Credit_18'),
-				'Credit_24' 	=> $this->get_payment_desc('Credit_24'),
-				'WebATM' 	=> $this->get_payment_desc('WebATM'),
-				'ATM' 		=> $this->get_payment_desc('ATM'),
-				'CVS' 		=> $this->get_payment_desc('CVS'),
-				'BARCODE' 	=> $this->get_payment_desc('BARCODE'),
-				'ApplePay' 	=> $this->get_payment_desc('ApplePay')
-			),
-			'desc_tip'    => true,
+			'type' 		=> 'ecpay_payment_methods',
 		),
 		'apple_pay_advanced' => array(
 	                'title'       => __( 'Apple Pay設定', 'ecpay' ),

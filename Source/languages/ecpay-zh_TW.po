@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ecpay\n"
 "POT-Creation-Date: 2015-05-21 17:16+0800\n"
-"PO-Revision-Date: 2018-03-12 13:22+0800\n"
+"PO-Revision-Date: 2019-07-12 16:45+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.1\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -79,7 +79,7 @@ msgstr "取號結果 : (%s)%s"
 msgid "ECPay Payment Result : (%s)%s"
 msgstr "綠界科技付款結果 : (%s)%s"
 
-msgid "Faild To Pay<br />Error : %s<br />"
+msgid "Failed To Pay<br />Error : %s<br />"
 msgstr "付款失敗<br />錯誤訊息 : %s<br />"
 
 msgid "Credit"
@@ -99,6 +99,9 @@ msgstr "信用卡(18期)"
 
 msgid "Credit(24 Installments)"
 msgstr "信用卡(24期)"
+
+msgid "UnionPay"
+msgstr "銀聯卡"
 
 msgid "WEB-ATM"
 msgstr "網路ATM"
@@ -123,6 +126,9 @@ msgstr "Apple Pay"
 
 msgid "TopUpUsed"
 msgstr "儲值/餘額消費"
+
+msgid "A Package Of Online Goods"
+msgstr "網路商品一批"
 
 msgid "ECPay module missed."
 msgstr "綠界科技模組遺失."
@@ -207,3 +213,12 @@ msgstr "匯款帳號"
 
 msgid "Payment details"
 msgstr "付款資訊"
+
+msgid "Duplicate payment is not supported, please try to place the order once again."
+msgstr "不支援重新付款，請重新下單。"
+
+msgid "The order has changed, please refresh your browser."
+msgstr "系統偵測到訂單有資料異動，請重新整理頁面。"
+
+msgid "Simulate paid, update the note only."
+msgstr "模擬付款接收成功，請勿出貨。"

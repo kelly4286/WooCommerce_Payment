@@ -194,12 +194,23 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 			$sMsg = '' ;
 
 			$ecpay_apple_pay = new Ecpay_ApplePay ;
-			$ecpay_apple_pay::check_apple_ca($this->apple_pay_key_path, $this->apple_pay_crt_path, $this->apple_pay_key_pass, $this->apple_display_name);
+			$ecpay_apple_pay->ServiceURL = 'https://apple-pay-gateway-cert.apple.com/paymentservices/startSession';
+			$ecpay_apple_pay->Verify_Vendor['displayName']  = $this->apple_display_name;
+			$ecpay_apple_pay->Verify_Vendor['crt_path']     = $this->apple_pay_crt_path;
+			$ecpay_apple_pay->Verify_Vendor['key_path']     = $this->apple_pay_key_path;
+			$ecpay_apple_pay->Verify_Vendor['key_password'] = $this->apple_pay_key_pass;
+
+			if ($ecpay_apple_pay->Verify_Vendor_Test() == 'yes') {
+				echo $ecpay_apple_pay->Verify_Vendor_Test();
+			} else {
+				echo $ecpay_apple_pay->Verify_Vendor();
+			}
 		}
 		catch (Exception $e)
 		{
 			// 例外錯誤處理。
 			$sMsg = $e->getMessage();
+			echo $sMsg;
 		}
 
 		wp_die(); // this is required to terminate immediately and return a proper response
@@ -231,7 +242,17 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 			$sMsg = '' ;
 
 			$ecpay_apple_pay = new Ecpay_ApplePay ;
-			$sReturn_Msg = $ecpay_apple_pay->check_vendor_ca($this->apple_pay_key_path, $this->apple_pay_crt_path, $this->apple_pay_key_pass, $this->apple_display_name);
+			$ecpay_apple_pay->ServiceURL = 'https://apple-pay-gateway-cert.apple.com/paymentservices/startSession';
+			$ecpay_apple_pay->Verify_Vendor['displayName']  = $this->apple_display_name;
+			$ecpay_apple_pay->Verify_Vendor['crt_path']     = $this->apple_pay_crt_path;
+			$ecpay_apple_pay->Verify_Vendor['key_path']     = $this->apple_pay_key_path;
+			$ecpay_apple_pay->Verify_Vendor['key_password'] = $this->apple_pay_key_pass;
+
+			if ($ecpay_apple_pay->Verify_Vendor_Test() == 'yes') {
+				$sReturn_Msg = $ecpay_apple_pay->Verify_Vendor_Test();
+			} else {
+				$sReturn_Msg = $ecpay_apple_pay->Verify_Vendor();
+			}
 
 			echo $sReturn_Msg ;
 		}
@@ -239,6 +260,7 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 		{
 			// 例外錯誤處理。
 			$sMsg = $e->getMessage();
+			echo $sMsg;
 		}
 
 		wp_die(); // this is required to terminate immediately and return a proper response
@@ -297,7 +319,7 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 
 			$ecpay_apple_pay->Send['TotalAmount'] 		= $order->get_total() ;
 			$ecpay_apple_pay->Send['CurrencyCode'] 		= 'TWD' ;
-			$ecpay_apple_pay->Send['ItemName'] 		= '網路商品一批';
+			$ecpay_apple_pay->Send['ItemName'] 		    = __('A Package Of Online Goods', 'ecpay');
 			$ecpay_apple_pay->Send['PlatformID'] 		= '' ;
 			$ecpay_apple_pay->Send['TradeDesc'] 		= 'wordpress applepay v1.0.10601' ;
 			$ecpay_apple_pay->Send['PaymentToken'] 		= $sPayment ;

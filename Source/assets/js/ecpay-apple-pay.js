@@ -1,9 +1,5 @@
 var $ = jQuery.noConflict();
 
-
-
-console.log(wc_ecpay_apple_pay_params.site_url+'/index.php/checkout/order-received/');
-
 jQuery(document).ready(function($){
 
     /* 檢查當前瀏覽器是否可支援Apple Pay */
@@ -11,33 +7,32 @@ jQuery(document).ready(function($){
 	
 	if(wc_ecpay_apple_pay_params.server_https == 'on')
 	{
-		if(wc_ecpay_apple_pay_params.test_mode == 'yes')
-	        {
-	        	console.log('s0:檢查是否為https');
-	        	console.log(wc_ecpay_apple_pay_params.server_https);
-	        }
+		if(wc_ecpay_apple_pay_params.test_mode == 'yes') {
+			console.log('s0:檢查是否為https');
+			console.log(wc_ecpay_apple_pay_params.server_https);
+		}
 
 
-	        if (window.ApplePaySession) {
+		if (window.ApplePaySession) {
 
 			var merchantIdentifier = wc_ecpay_apple_pay_params.display_name;  
 			var promise = ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier);
 			
 
 			if(wc_ecpay_apple_pay_params.test_mode == 'yes')
-		        {
-		        	console.log('s0:檢查 canMakePaymentsWithActiveCard');
-		        	console.log(promise);
-		        }
+			{
+				console.log('s0:檢查 canMakePaymentsWithActiveCard');
+				console.log(promise);
+			}
 
 
 			promise.then(function (canMakePayments) {
-			    	if (canMakePayments) {
-			        	
-					jQuery("#apple-pay-button").show();
-			        	jQuery("#apple-pay-button").click(beginPayment);
+				if (canMakePayments) {
 
-			    	}
+				jQuery("#apple-pay-button").show();
+					jQuery("#apple-pay-button").click(beginPayment);
+
+				}
 			});
 
 		}else {
@@ -48,12 +43,12 @@ jQuery(document).ready(function($){
 	else
 	{
 		if(wc_ecpay_apple_pay_params.test_mode == 'yes')
-	        {
-	        	console.log('s0:檢查是否為https');
-	        	console.log(wc_ecpay_apple_pay_params.server_https);
-	        }
+		{
+			console.log('s0:檢查是否為https');
+			console.log(wc_ecpay_apple_pay_params.server_https);
+		}
 
-	        jQuery(".apple-pay-button-wrapper").html("<span style='font-size: 12px; font-weight: bold;'>此網站不支援HTTPS瀏覽，請與網站提供者聯繫。</span>");	
+		jQuery(".apple-pay-button-wrapper").html("<span style='font-size: 12px; font-weight: bold;'>此網站不支援HTTPS瀏覽，請與網站提供者聯繫。</span>");
 	}
 	
 }); 
@@ -61,19 +56,19 @@ jQuery(document).ready(function($){
 
 
 function beginPayment() {
-    	
-    	/* 建立 PaymentRequest */
-    	/* 參考來源: https://developer.apple.com/reference/applepayjs/paymentrequest */
+
+	/* 建立 PaymentRequest */
+	/* 參考來源: https://developer.apple.com/reference/applepayjs/paymentrequest */
 
 	var request = {
 	        countryCode: 'TW',	    				/* 交易地點 */
 	        currencyCode: 'TWD',					/* 交易幣別 */
 	        supportedNetworks: ['visa', 'masterCard'],		/* 支援卡別 */
-	        merchantCapabilities: ['supports3DS'],			
-		total: { 
-	        	label: wc_ecpay_apple_pay_params.lable,
-	        	amount: wc_ecpay_apple_pay_params.total 	/* amount為交易金額，商家需自行帶入此次交易的金額 */
-	        }
+	        merchantCapabilities: ['supports3DS'],
+			total: {
+				label: wc_ecpay_apple_pay_params.lable,
+				amount: wc_ecpay_apple_pay_params.total 	/* amount為交易金額，商家需自行帶入此次交易的金額 */
+			}
 
 	};
 
@@ -104,27 +99,24 @@ function beginPayment() {
                         dataType: "json",
                         success: function (merchantSession){
 
-				//alert(merchantSession);
+							//alert(merchantSession);
 
-				if(wc_ecpay_apple_pay_params.test_mode == 'yes')
-			        {
-			        	console.log('s3:商店驗證回傳結果');
-			        	console.log(merchantSession);
-			        	console.log(JSON.parse(merchantSession));
-			        }
+							if(wc_ecpay_apple_pay_params.test_mode == 'yes') {
+								console.log('s3:商店驗證回傳結果');
+								console.log(merchantSession);
+							}
 
-			        if(wc_ecpay_apple_pay_params.test_mode == 'yes')
-			        {
-			        	console.log('s4:提示付款，按壓指紋');
-			        }
+							if(wc_ecpay_apple_pay_params.test_mode == 'yes') {
+								console.log('s4:提示付款，按壓指紋');
+							}
 
-				// 驗證成功提示按壓指紋
-				session.completeMerchantValidation(JSON.parse(merchantSession));
-                        },
-                        error: function (sMsg1, sMsg2){
-                               //alert('fail2');
-                        }
-                });
+							// 驗證成功提示按壓指紋
+							session.completeMerchantValidation(merchantSession);
+						},
+						error: function (sMsg1, sMsg2){
+								//alert('fail2');
+						}
+		});
 
 	};
 
@@ -162,14 +154,13 @@ function beginPayment() {
 				if(merchantSession.RtnCode == 1)
 				{
 					if(wc_ecpay_apple_pay_params.test_mode == 'yes')
-				        {
-				        	console.log('s10:授權成功');
-				        	console.log(merchantSession);
-				        }
+					{
+						console.log('s10:授權成功');
+						console.log(merchantSession);
+					}
 
-
-				        session.completePayment(JSON.parse(ApplePaySession.STATUS_SUCCESS));
-					window.location.href = wc_ecpay_apple_pay_params.site_url+"/index.php/checkout/order-received/";
+			        session.completePayment(JSON.parse(ApplePaySession.STATUS_SUCCESS));
+					window.location.href = wc_ecpay_apple_pay_params.clientBackUrl;
 				}
 				else
 				{
