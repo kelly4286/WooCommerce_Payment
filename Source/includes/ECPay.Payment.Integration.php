@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 付款方式。
  */
@@ -414,8 +415,9 @@ if(!class_exists('ECPay_EncryptType', false))
  * 1.1.20221    *支援站內付全方位金流
  * 1.1.180313   *修正信用卡記憶卡號參數.
  * 1.1.190328   *設定class_exists的autoload參數為false.
+ * 1.1.190917   *ServerPost改static調用
  *
- * @version 1.1.190328
+ * @version 1.1.190917
  * @author charlie & wesley
  */
 class ECPay_AllInOne {
@@ -423,7 +425,8 @@ class ECPay_AllInOne {
     /**
      * @ SDK版本
      */
-    const VERSION = '1.1.190328';
+    const VERSION = '1.1.190917';
+
 
     public $ServiceURL = 'ServiceURL';
     public $ServiceMethod = 'ServiceMethod';
@@ -746,7 +749,7 @@ class ECPay_QueryTradeInfo extends ECPay_Aio
         if (sizeof($arErrors) == 0) {
             $arParameters["CheckMacValue"] = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$EncryptType);
             // 送出查詢並取回結果。
-            $szResult = parent::ServerPost($arParameters,$ServiceURL);
+            $szResult = static::ServerPost($arParameters,$ServiceURL);
             $szResult = str_replace(' ', '%20', $szResult);
             $szResult = str_replace('+', '%2B', $szResult);
 
@@ -795,7 +798,7 @@ class ECPay_QueryPeriodCreditCardTradeInfo extends ECPay_Aio
         if (sizeof($arErrors) == 0) {
             $arParameters["CheckMacValue"] = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$EncryptType);
             // 送出查詢並取回結果。
-            $szResult = parent::ServerPost($arParameters,$ServiceURL);
+            $szResult = static::ServerPost($arParameters,$ServiceURL);
             $szResult = str_replace(' ', '%20', $szResult);
             $szResult = str_replace('+', '%2B', $szResult);
 
@@ -830,7 +833,7 @@ class ECPay_DoAction extends ECPay_Aio
         $szCheckMacValue = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$EncryptType);
         $arParameters["CheckMacValue"] = $szCheckMacValue;
         // 送出查詢並取回結果。
-        $szResult = self::ServerPost($arParameters,$ServiceURL);
+        $szResult = static::ServerPost($arParameters,$ServiceURL);
         // 轉結果為陣列。
         parse_str($szResult, $arResult);
         // 重新整理回傳參數。
@@ -869,7 +872,7 @@ class ECPay_AioCapture extends ECPay_Aio
         $arParameters["CheckMacValue"] = $szCheckMacValue;
 
         // 送出查詢並取回結果。
-        $szResult = self::ServerPost($arParameters,$ServiceURL);
+        $szResult = static::ServerPost($arParameters,$ServiceURL);
 
         // 轉結果為陣列。
         parse_str($szResult, $arResult);
@@ -918,7 +921,7 @@ class ECPay_QueryTrade extends ECPay_Aio
         if (sizeof($arErrors) == 0) {
             $arParameters["CheckMacValue"] = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$EncryptType);
             // 送出查詢並取回結果。
-            $szResult = parent::ServerPost($arParameters,$ServiceURL);
+            $szResult = static::ServerPost($arParameters,$ServiceURL);
 
             // 轉結果為陣列。
             $arResult = json_decode($szResult,true);
@@ -993,7 +996,7 @@ class ECPay_CreateTrade extends ECPay_Aio
         $arParameters["CheckMacValue"] = $szCheckMacValue;
 
         // 送出查詢並取回結果。
-        $szResult = self::ServerPost($arParameters,$ServiceURL);
+        $szResult = static::ServerPost($arParameters,$ServiceURL);
 
         // 轉結果為陣列。
         $arResult = json_decode($szResult,true);

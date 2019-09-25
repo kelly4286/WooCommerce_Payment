@@ -1,12 +1,12 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.2.190807
+ * @version 1.2.190924
  *
- * Plugin Name: WooCommerce ECPay Payment
+ * Plugin Name: ECPay Payment for WooCommerce
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.2.190807
+ * Version: 1.2.190924
  * Author: ECPay Green World FinTech Service Co., Ltd.
  * Author URI: https://www.ecpay.com.tw
  */
@@ -19,12 +19,12 @@ require_once(ABSPATH . 'wp-admin/includes/file.php');
 /**
  * Required minimums and constants
  */
-define( 'WC_ECPAY_VERSION', '3.1.6' );
-define( 'WC_ECPAY_MIN_PHP_VER', '5.0.0' );
-define( 'WC_ECPAY_MIN_WC_VER', '2.5.0' );
-define( 'WC_ECPAY_MAIN_FILE', __FILE__ );
-define( 'WC_ECPAY_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
-define( 'WC_ECPAY_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
+define( 'ECPAY_PAYMENT_VERSION', '3.1.6' );
+define( 'ECPAY_PAYMENT_MIN_PHP_VER', '5.0.0' );
+define( 'ECPAY_PAYMENT_MIN_WC_VER', '2.5.0' );
+define( 'ECPAY_PAYMENT_MAIN_FILE', __FILE__ );
+define( 'ECPAY_PAYMENT_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
+define( 'ECPAY_PAYMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
 
 if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 {
@@ -105,26 +105,26 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
          */
         static function get_environment_warning() {
 
-            if ( version_compare( phpversion(), WC_ECPAY_MIN_PHP_VER, '<' ) ) {
-                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s - The minimum PHP version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
+            if ( version_compare( phpversion(), ECPAY_PAYMENT_MIN_PHP_VER, '<' ) ) {
+                $message = __( '%1$sECPay Payment for WooCommerce Gateway%2$s - The minimum PHP version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
 
-                return sprintf( $message, '<strong>', '</strong>', WC_ECPAY_MIN_PHP_VER, phpversion() );
+                return sprintf( $message, '<strong>', '</strong>', ECPAY_PAYMENT_MIN_PHP_VER, phpversion() );
             }
 
             if ( ! defined( 'WC_VERSION' ) ) {
-                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s requires WooCommerce to be activated to work.', 'ecpay' );
+                $message = __( '%1$sECPay Payment for WooCommerce Gateway%2$s requires WooCommerce to be activated to work.', 'ecpay' );
 
                 return sprintf( $message, '<strong>', '</strong>' );
             }
 
-            if ( version_compare( WC_VERSION, WC_ECPAY_MIN_WC_VER, '<' ) ) {
-                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s - The minimum WooCommerce version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
+            if ( version_compare( WC_VERSION, ECPAY_PAYMENT_MIN_WC_VER, '<' ) ) {
+                $message = __( '%1$sECPay Payment for WooCommerce Gateway%2$s - The minimum WooCommerce version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
 
-                return sprintf( $message, WC_ECPAY_MIN_WC_VER, WC_VERSION );
+                return sprintf( $message, ECPAY_PAYMENT_MIN_WC_VER, WC_VERSION );
             }
 
             if ( ! function_exists( 'curl_init' ) ) {
-                $message = __( '%1$sWooCommerce ECPay Payment Gateway%2$s - cURL is not installed.', 'ecpay' );
+                $message = __( '%1$sECPay Payment for WooCommerce Gateway%2$s - cURL is not installed.', 'ecpay' );
 
                 return sprintf( $message, '<strong>', '</strong>' );
             }
@@ -159,7 +159,8 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
             }
 
             if ( class_exists( 'WC_Payment_Gateway_CC' ) ) {
-                include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Integration.php' );  // 載入SDK
+                include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Integration.Shell.php' ); // 載入SDK
+                include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Html.php' );
                 include_once( dirname( __FILE__ ) . '/includes/class-wc-gateway-ecpay.php' );
                 include_once( dirname( __FILE__ ) . '/includes/class-wc-ecpay-apple-pay.php' );
                 include_once( dirname( __FILE__ ) . '/includes/helpers/ECPayPaymentHelper.php' ); // 載入Helper
@@ -204,7 +205,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                             <tr>
                                 <th scope="row">' . __( 'Payment Method', 'ecpay' ) . ': </th>
                                 <td>
-                                    ' . print_r($orderDetails, true) . '
+                                    ' . esc_html(print_r($orderDetails, true)) . '
                                 </td>
                             </tr>
                         </tfoot>

@@ -96,30 +96,20 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 		$gateway_settings = get_option( 'woocommerce_ecpay_settings', '' );
 
 		$this->ecpay_pay        	= ( ! empty( $gateway_settings['enabled'] ) && $gateway_settings['enabled'] === 'yes') ? true : false;
-		//$this->apple_pay        	= ( ! empty( $gateway_settings['ecpay_apple_pay'] ) && $gateway_settings['ecpay_apple_pay'] === 'yes') ? true : false;
 		$this->apple_pay_button 	= ! empty( $gateway_settings['ecpay_apple_pay_button'] ) 	? $gateway_settings['ecpay_apple_pay_button'] : 'black';
 		$this->apple_pay_key_path 	= ! empty( $gateway_settings['ecpay_apple_pay_key_path'] ) 	? $gateway_settings['ecpay_apple_pay_key_path'] : '';
 		$this->apple_pay_crt_path 	= ! empty( $gateway_settings['ecpay_apple_pay_crt_path'] ) 	? $gateway_settings['ecpay_apple_pay_crt_path'] : '';
 		$this->apple_pay_key_pass	= ! empty( $gateway_settings['ecpay_apple_pay_key_pass'] ) 	? $gateway_settings['ecpay_apple_pay_key_pass'] : '';
 		$this->apple_display_name	= ! empty( $gateway_settings['ecpay_apple_display_name'] ) 	? $gateway_settings['ecpay_apple_display_name'] : '';
-		
-		$this->MerchantID		= ! empty( $gateway_settings['ecpay_merchant_id'] ) 		? $gateway_settings['ecpay_merchant_id'] : '';
-		$this->HashKey 			= ! empty( $gateway_settings['ecpay_hash_key'] ) 		? $gateway_settings['ecpay_hash_key'] : '';
-		$this->HashIV			= ! empty( $gateway_settings['ecpay_hash_iv'] ) 		? $gateway_settings['ecpay_hash_iv'] : '';
 
-
-		$this->ecpay_test_mode 		= ! empty( $gateway_settings['ecpay_test_mode'] ) 		? $gateway_settings['ecpay_test_mode'] : 1;
-
+		$this->MerchantID		= ! empty( $gateway_settings['ecpay_merchant_id'] ) ? $gateway_settings['ecpay_merchant_id'] : '';
+		$this->HashKey 			= ! empty( $gateway_settings['ecpay_hash_key'] ) 	? $gateway_settings['ecpay_hash_key']    : '';
+		$this->HashIV			= ! empty( $gateway_settings['ecpay_hash_iv'] ) 	? $gateway_settings['ecpay_hash_iv']     : '';
+		$this->ecpay_test_mode 	= ! empty( $gateway_settings['ecpay_test_mode'] ) 	? $gateway_settings['ecpay_test_mode']   : 1;
 
 		$this->init();
-
-		
-	} 
-/*
-	public static function instance() {
-		return self::$_this;
 	}
-*/
+
 	/**
 	 * Initialize.
 	 *
@@ -127,36 +117,24 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 	public function init() {
 		// If ECPay Pay is not enabled no need to proceed further.
 		if ( ! $this->ecpay_pay ) {
-
 			return;
 		}
-
-		// If Apple Pay is not enabled no need to proceed further.
-		/*
-		if ( ! $this->apple_pay ) {
-
-			return;
-		}
-		*/
 
 		include_once( 'ECPay.Payment.Applepay.php' );	// 載入 APPLE PAY SDK
 		
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 
 		// 測試APPLE PAY
-		add_action( 'admin_footer', array( $this, 'ajax_apple_pay_ca_test' ) ); 		// 前端送出
-		add_action( 'wp_ajax_apple_pay_ca_test', array( $this, 'curl_apple_ca_test' ) );	// 後端接收
-
-
+		add_action( 'admin_footer', array( $this, 'ajax_apple_pay_ca_test' ) ); 		 // 前端送出
+		add_action( 'wp_ajax_apple_pay_ca_test', array( $this, 'curl_apple_ca_test' ) ); // 後端接收
 
 		// Apple pay驗證廠商是否有註冊
-		add_action( 'wp_ajax_apple_pay_check_vendor', array( $this, 'curl_apple_pay_check_vendor' ));		// 後端接收
-		add_action( 'wp_ajax_nopriv_apple_pay_check_vendor', array( $this, 'curl_apple_pay_check_vendor' ) );	// 後端接收
-
+		add_action( 'wp_ajax_apple_pay_check_vendor', array( $this, 'curl_apple_pay_check_vendor' ));		  // 後端接收
+		add_action( 'wp_ajax_nopriv_apple_pay_check_vendor', array( $this, 'curl_apple_pay_check_vendor' ) ); // 後端接收
 
 		// Apple Pay 送出交易
 		add_action( 'wp_ajax_apple_pay_check_out', array( $this, 'curl_apple_pay_check_out' ));			// 後端接收
-		add_action( 'wp_ajax_nopriv_apple_pay_check_out', array( $this, 'curl_apple_pay_check_out' ) );		// 後端接收
+		add_action( 'wp_ajax_nopriv_apple_pay_check_out', array( $this, 'curl_apple_pay_check_out' ) );	// 後端接收
 	}
 
 	// 測試憑證
@@ -176,7 +154,6 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 					$.post(ajaxurl, data, function(response) {
 						setTimeout($.unblockUI, 1);
 						alert(response);
-						
 					});
 				    });
 				});
@@ -201,9 +178,9 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 			$ecpay_apple_pay->Verify_Vendor['key_password'] = $this->apple_pay_key_pass;
 
 			if ($ecpay_apple_pay->Verify_Vendor_Test() == 'yes') {
-				echo $ecpay_apple_pay->Verify_Vendor_Test();
+				echo esc_html($ecpay_apple_pay->Verify_Vendor_Test());
 			} else {
-				echo $ecpay_apple_pay->Verify_Vendor();
+				echo esc_html($ecpay_apple_pay->Verify_Vendor());
 			}
 		}
 		catch (Exception $e)
@@ -254,7 +231,7 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 				$sReturn_Msg = $ecpay_apple_pay->Verify_Vendor();
 			}
 
-			echo $sReturn_Msg ;
+			echo esc_html($sReturn_Msg) ;
 		}
 		catch (Exception $e)
 		{
@@ -266,28 +243,20 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 		wp_die(); // this is required to terminate immediately and return a proper response
 
 		exit;
-
 	}
 
 	/**
 	 * 送出授權交易
 	 */
 	public function curl_apple_pay_check_out() {
-		
+
 		global $woocommerce, $post, $wpdb;
 
- 		
-
-		$sPayment = isset($_POST['payment'])	? stripslashes($_POST['payment'])	: '123456789abcdefgABCDEFG!@#$%^&*()' ;
-		$order_id = isset($_POST['order_id'])	? $_POST['order_id']	: '' ;
+		$sPayment = isset($_POST['payment'])	? stripslashes(sanitize_text_field($_POST['payment']))	: '123456789abcdefgABCDEFG!@#$%^&*()' ;
+		$order_id = isset($_POST['order_id'])	? sanitize_text_field($_POST['order_id'])	: '' ;
 
 		$order = new WC_Order($order_id);
 
-
-		// 轉為等待付款
-		//$order->update_status('Pending Payment');
-
-	
 		try
 		{
 			$sMsg = '' ;
@@ -311,12 +280,11 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 			}
 
 			// 蒐集參數
-			$ecpay_apple_pay->MerchantID 			= $this->MerchantID ;
+			$ecpay_apple_pay->MerchantID 		= $this->MerchantID ;
 			$ecpay_apple_pay->HashKey 			= $this->HashKey ;
 			$ecpay_apple_pay->HashIV 			= $this->HashIV ;
 
-			$ecpay_apple_pay->Send['MerchantTradeDate'] 	= date('Y/m/d H:i:s');
-
+			$ecpay_apple_pay->Send['MerchantTradeDate'] = date('Y/m/d H:i:s');
 			$ecpay_apple_pay->Send['TotalAmount'] 		= $order->get_total() ;
 			$ecpay_apple_pay->Send['CurrencyCode'] 		= 'TWD' ;
 			$ecpay_apple_pay->Send['ItemName'] 		    = __('A Package Of Online Goods', 'ecpay');
@@ -325,30 +293,25 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 			$ecpay_apple_pay->Send['PaymentToken'] 		= $sPayment ;
 			$ecpay_apple_pay->Send['TradeType'] 		= 2 ;
 
-
 			$aMsg_Return = $ecpay_apple_pay->Check_Out();
  			
 			if( isset($aMsg_Return['RtnCode']) && $aMsg_Return['RtnCode'] == 1)
 			{	
 				//  異動訂單作業
-				$comments = print_r($aMsg_Return, true);
+				$comments = esc_html(print_r($aMsg_Return, true));
 				if ($order->get_status() == 'pending') {
 					$this->confirm_order($order, $comments, $aNext_Step) ;
 				} else {
 					# The order already paid or not in the standard procedure, do nothing
-
-
 				}
 			}
 			else
 			{
-				$comments = print_r($aMsg_Return, true);
+				$comments = esc_html(print_r($aMsg_Return, true));
 				$order->add_order_note($comments);
 			}
-			
-			
+
 			echo json_encode($aMsg_Return);
-			
 		}
 		catch (Exception $e)
 		{
@@ -360,7 +323,6 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 		wp_die(); // this is required to terminate immediately and return a proper response
 
 		exit;
-
 	}
 }
 
