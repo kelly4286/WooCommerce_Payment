@@ -64,8 +64,8 @@
 1. APPLE PAY的付款交易須自備SSL加密環境
 1. APPLE PAY交易環境必須支援Transport Layer Security (TLS) 1.2 ，包含消費者手機環境及廠商伺服器環境
 
-#### 測試準備項目
-請在 [測試環境申請註冊會員](https://member-stage.ecpay.com.tw/MemberReg/MemberRegister?back=N)
+#### 準備項目
+請在 [正式環境申請註冊會員](https://member.ecpay.com.tw/MemberReg/MemberRegister?back=N)
 完成後請提供下列資訊：
 1. 申請綠界測試環境會員編號
 1. 申請APPLE PAY的MerchantID
@@ -76,13 +76,13 @@
 1. 商店驗證事件取得merchantSession中的PaymentToken物件(須消費者付款指紋認証後才會取得，提供時無須經過AES加密的資料)
 1. 建立付款請求物件的交易金額
 
-將上述資料寄件至`techsupport@ecpay.com.tw`信箱，我們將由專人進行測試相關設定作業後，會通知廠商串接信用授權串接服務測試。
+將上述資料寄件至`techsupport@ecpay.com.tw`信箱，我們將由專人進行相關設定作業後，會通知廠商串接信用授權串接服務。
 
-#### 廠商管理後台測試環境
-https://vendor-stage.ecpay.com.tw
+#### 廠商管理後台環境
+https://vendor.ecpay.com.tw
 此網站可提供：
 1. 查詢ecpay訂單
-1. 測試環境金鑰取得資訊
+1. 正式環境金鑰取得資訊
 
 `系統開發管理` -> `系統介接設定` 取得介接 `HashKey` 及 `HashIV` 資訊。
 
