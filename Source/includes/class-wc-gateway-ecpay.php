@@ -445,7 +445,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                                     $comments .= $get_code_result_comments;
                                     $order->add_order_note($comments, ECPay_OrderNoteEmail::PAYMENT_INFO_CVS_AND_BARCODE);
 
-                                    if($ecpay_payment_method == CVS )
+                                    if($ecpay_payment_method == ECPay_PaymentMethod::CVS )
                                     {
                                         // 紀錄付款資訊提供感謝頁面使用
                                         add_post_meta( $order->id, 'payment_method', 'CVS', true);
@@ -933,7 +933,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
             'my_custom_script',
             plugins_url( 'assets/js/ecpay-payment.js', ECPAY_PAYMENT_MAIN_FILE ),
             array('jquery'),
-            '1.2.190917',
+            '1.2.1912060',
             true
         );
 
