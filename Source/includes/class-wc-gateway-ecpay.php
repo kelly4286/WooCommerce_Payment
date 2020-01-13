@@ -531,7 +531,6 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
             'ATM'       => $this->tran('ATM'),
             'CVS'       => $this->tran('CVS'),
             'BARCODE'   => $this->tran('BARCODE'),
-            'GooglePay' => $this->tran('GooglePay'),
             'ApplePay'  => $this->tran('ApplePay')
         );
 
@@ -933,7 +932,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
             'my_custom_script',
             plugins_url( 'assets/js/ecpay-payment.js', ECPAY_PAYMENT_MAIN_FILE ),
             array('jquery'),
-            '1.2.1912060',
+            '1.2.2001070',
             true
         );
 
@@ -1136,7 +1135,9 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                 'hashKey' => $this->ecpay_hash_key,
                 'hashIv'  => $this->ecpay_hash_iv,
             );
-            $ecpay_feedback = $this->helper->getValidFeedback($data);
+
+            # 與一般付款不同回傳參數，因此使用不同 Helper 功能
+            $ecpay_feedback = $this->helper->getFeedback($data);
 
             if (count($ecpay_feedback) < 1) {
                 throw new Exception('Get ECPay feedback failed.');
@@ -1152,7 +1153,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
                 $cart_amount = $order->get_total();
 
                 # Check the amounts
-                $ecpay_amount = $ecpay_feedback['amount'];
+                $ecpay_amount = $ecpay_feedback['Amount'];
                 if (round($cart_amount) != $ecpay_amount) {
                     throw new Exception('Order ' . $cart_order_id . ' amount are not identical.');
                 } else {

@@ -74,7 +74,6 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
         'ATM'       ,
         'CVS'       ,
         'BARCODE'   ,
-        'GooglePay' ,
         'ApplePay'
     );
 
@@ -381,6 +380,7 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
             'PaymentType',
             'SimulatePaid',
             'RtnCode',
+            'RtnMsg',
         );
         $inputFeedback = $this->only($feedback, $whiteList);
         unset($whiteList);
