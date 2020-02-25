@@ -1,7 +1,7 @@
 綠界科技 WooCommerce 金流模組
 ===============
 <p align="center">
-    <img alt="Last Release" src="https://img.shields.io/github/release/ECPay/WooCommerce_Logistics.svg">
+    <img alt="Last Release" src="https://img.shields.io/github/release/ECPay/WooCommerce_Payment.svg">
 </p>
 
 * 綠界科技金流外掛套件(以下簡稱外掛套件)，提供合作特店以及個人會員使用開放原始碼商店系統時，無須自行處理複雜的檢核，直接透過安裝設定外掛套件，便可以較快速的方式介接綠界科技的金流系統。
@@ -11,7 +11,7 @@
 	* 網路ATM
 	* ATM櫃員機
 	* 超商代碼
-	* Google Pay
+	* 超商條碼
 	* Apple Pay
 
 * 注意事項：
@@ -24,8 +24,8 @@
 * [支援版本](#支援版本)
 * [綠界科技ApplePay系統介接相關資訊](#綠界科技ApplePay系統介接相關資訊)
 	1. [須具備條件](#須具備條件)
-	2. [準備項目](#準備項目)
-	3. [廠商管理後台環境](#廠商管理後台環境)
+	2. [測試準備項目](#測試準備項目)
+	3. [廠商管理後台測試環境](#廠商管理後台測試環境)
 	4. [正式環境金鑰取得資訊](#正式環境金鑰取得資訊)
 	5. [客戶環境支援資訊](#客戶環境支援資訊)
 * [WooCommerce安裝準備事項](#WooCommerce安裝準備事項)
@@ -50,7 +50,7 @@
 -----------------
 | Wordpress  | WooCommerce | PHP |
 | :---------: | :----------: | :----------: |
-|  4.5.3 / 4.6.1 / 4.7.3 / 4.8.0 ~ 4.8.2 / 5.2.1 | 2.6.0 ~ 2.6.14 / 3.1.0 ~ 3.1.2 / 3.2.0 / 3.4.6 / 3.6.4 |  5.6 以上 |
+|  4.5.3 / 4.6.1 / 4.7.3 / 4.8.0~4.8.2 / 5.2.1  / 5.3.2 | 2.6.0~2.6.14 / 3.1.0~3.1.2 / 3.2.0 / 3.4.6 / 3.6.4 / 3.9.2 |  5.6 以上 |
 
 
 
@@ -64,10 +64,10 @@
 1. APPLE PAY的付款交易須自備SSL加密環境
 1. APPLE PAY交易環境必須支援Transport Layer Security (TLS) 1.2 ，包含消費者手機環境及廠商伺服器環境
 
-#### 準備項目
-請在 [正式環境申請註冊會員](https://member.ecpay.com.tw/MemberReg/MemberRegister?back=N)
+#### 測試準備項目
+請在 [測試環境申請註冊會員](https://member-stage.ecpay.com.tw/MemberReg/MemberRegister?back=N)
 完成後請提供下列資訊：
-1. 申請綠界環境會員編號
+1. 申請綠界測試環境會員編號
 1. 申請APPLE PAY的MerchantID
 1. APPLE PAY交易憑証的加密密碼(必須設置密碼)
 1. APPLE PAY交易憑証(Apple Pay Payment Processing)
@@ -76,13 +76,13 @@
 1. 商店驗證事件取得merchantSession中的PaymentToken物件(須消費者付款指紋認証後才會取得，提供時無須經過AES加密的資料)
 1. 建立付款請求物件的交易金額
 
-將上述資料寄件至`techsupport@ecpay.com.tw`信箱，我們將由專人進行相關設定作業後，會通知廠商串接信用授權串接服務。
+將上述資料寄件至`techsupport@ecpay.com.tw`信箱，我們將由專人進行測試相關設定作業後，會通知廠商串接信用授權串接服務測試。
 
-#### 廠商管理後台環境
-https://vendor.ecpay.com.tw
+#### 廠商管理後台測試環境
+https://vendor-stage.ecpay.com.tw
 此網站可提供：
 1. 查詢ecpay訂單
-1. 正式環境金鑰取得資訊
+1. 測試環境金鑰取得資訊
 
 `系統開發管理` -> `系統介接設定` 取得介接 `HashKey` 及 `HashIV` 資訊。
 
@@ -159,11 +159,10 @@ WooCommerce安裝準備事項
 * `購物車後台` -> `WooCommerce` -> `設定(Settings)` -> `結帳(Checkout)` -> `綠界科技(ECPay)`。
 
 ##### 注意事項
-* 請先完成Apple Pay 相關設定步驟，請參考[ApplePay 開發者前置準備說明](#ApplePay開發者前置準備說明)
-* curl SSL Version需要使用openssl
-* key 憑證路徑與crt憑證路徑請勿放在網頁公用區域，以防憑證遭竊取風險
-* key與crt憑證是透過個人資訊交換 (.p12)，請使用openssl進行轉換
-
+* 請先完成Apple Pay 相關設定步驟，請參考[ApplePay 開發者前置準備說明](#ApplePay開發者前置準備說明)。
+* curl SSL Version需要使用openssl。
+* key 憑證路徑與crt憑證路徑請勿放在網頁公用區域，以防憑證遭竊取風險。
+* key與crt憑證是透過個人資訊交換 (.p12)，請使用openssl進行轉換。
 
 
 ApplePay開發者前置準備說明
