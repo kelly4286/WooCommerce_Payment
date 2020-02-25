@@ -32,61 +32,6 @@ class ECPayPaymentGenerateHtml
     }
 
     /**
-     * 後台 - 付款方式區塊 Html
-     *
-     * @param  array $data
-     * @return void
-     */
-    public function show_ecpay_payment_methods_html($data)
-    {
-        // 宣告參數
-        $id = $data['id'];
-        $payment_options = $data['payment_options'];
-        $ecpay_payment_methods = $data['ecpay_payment_methods'];
-        $ecpay_payment_methods_special = $data['ecpay_payment_methods_special'];
-
-        // Html
-        $szHtml  = '';
-        $szHtml .= '<tr valign="top">';
-        $szHtml .= '    <th scope="row" class="titledesc">';
-        $szHtml .= '        <label for="woocommerce_ecpay_ecpay_payment_methods">付款方式</label>';
-        $szHtml .= '    </th>';
-        $szHtml .= '    <td class="forminp" id="'. esc_attr($id .'_payment_options')  .'">';
-        $szHtml .= '        <table class="shippingrows widefat" cellspacing="0">';
-        $szHtml .= '            <tbody>';
-
-        // 付款方式
-        foreach ($ecpay_payment_methods as $key => $value) {
-            $szHtml .= '            <tr class="option-tr">';
-            $szHtml .= '                <td>';
-
-            // 判斷是否勾選
-            $checked = '';
-            if (in_array($key, $payment_options)) {
-                $checked = 'checked';
-            }
-            $szHtml .= '               <input type="checkbox" name="'. esc_attr($key) .'" value="' . esc_attr($key) . '" ' . $checked .' >';
-
-            // 判斷是否為需要申請的付款方式
-            if (in_array($key, $ecpay_payment_methods_special)) {
-                $szHtml .= $value . ' ( 提醒：商店需先申請為綠界科技的特約會員才可使用此付款方式 )';
-            } else {
-                $szHtml .= $value;
-            }
-
-            $szHtml .= '                </td>';
-            $szHtml .= '            </tr>';
-        }
-
-        $szHtml .= '            </tbody>';
-        $szHtml .= '        </table>';
-        $szHtml .= '    </td>';
-        $szHtml .= '</tr>';
-
-        return $szHtml;
-    }
-
-    /**
      * ApplePay 付款按鈕 Html
      *
      * @param  array $data

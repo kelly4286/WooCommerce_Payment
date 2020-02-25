@@ -1,18 +1,18 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.2.2001070
+ * @version 1.2.2002200
  *
  * Plugin Name: ECPay Payment for WooCommerce
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.2.2001070
+ * Version: 1.2.2002200
  * Author: ECPay Green World FinTech Service Co., Ltd.
  * Author URI: https://www.ecpay.com.tw
  * License: GPLv2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.txt
  * WC requires at least: 3
- * WC tested up to: 3.6.4
+ * WC tested up to: 3.9.1
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,24 +27,22 @@ define( 'ECPAY_PAYMENT_VERSION', '3.1.6' );
 define( 'ECPAY_PAYMENT_MIN_PHP_VER', '5.0.0' );
 define( 'ECPAY_PAYMENT_MIN_WC_VER', '2.5.0' );
 define( 'ECPAY_PAYMENT_MAIN_FILE', __FILE__ );
+define( 'ECPAY_PAYMENT_PLUGIN_VERSION', '1.2.2002200' );
 define( 'ECPAY_PAYMENT_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
-define( 'ECPAY_PAYMENT_PLUGIN_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) );
+define( 'ECPAY_PAYMENT_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 if ( ! class_exists( 'WC_Ecpay_Payment' ) )
 {
 
     class WC_Ecpay_Payment {
 
-        /**
-        *
-        */
         private static $instance;
 
         /**
-        * Returns the *Singleton* instance of this class.
-        *
-        * @return Singleton The *Singleton* instance.
-        */
+         * Returns the *Singleton* instance of this class.
+         *
+         * @return Singleton The *Singleton* instance.
+         */
         public static function get_instance() {
             if ( null === self::$instance ) {
                 self::$instance = new self();
@@ -62,10 +60,8 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
             add_action( 'admin_init', array( $this, 'check_environment' ) );
             add_action( 'admin_notices', array( $this, 'admin_notices' ), 15 );
             add_action( 'plugins_loaded', array( $this, 'init' ) );
-
             add_action('wp_footer', array( $this, 'ecpay_integration_plugin_init_payment_method' ) );
         }
-
 
         /**
          * Init the plugin after plugins_loaded so environment variables are set.
@@ -76,11 +72,9 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                 return;
             }
 
-
             // Init the gateway itself
             $this->init_gateways();
         }
-
 
         /**
          * Allow this class and other classes to add slug keyed notices (to avoid duplication)
@@ -93,8 +87,8 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
         }
 
         /**
-        * check_environment
-        */
+         * check_environment
+         */
         public function check_environment() {
             $environment_warning = self::get_environment_warning();
 
@@ -154,8 +148,8 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
         }
 
         /**
-        *
-        */
+         *
+         */
         public function init_gateways() {
 
             if ( ! class_exists( 'WC_Payment_Gateway' ) ) {

@@ -55,8 +55,6 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         # Load the helper
         $this->helper = ECPay_PaymentCommon::getHelper();
         $this->helper->setMerchantId($this->ecpay_merchant_id);
-        $this->helper->setTimezone(get_option('timezone_string'));
-        $this->helper->setOrderStatus(ECPay_PaymentCommon::getOrderStatus());
 
         # Load ECPay.Payment.Html
         $this->genHtml = ECPay_PaymentCommon::genHtml();
@@ -125,13 +123,13 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         ob_start();
 
         // 產生 Html
-        $data = array(
+        $args = [
             'id' => $this->id,
             'payment_options' => $this->payment_options,
             'ecpay_payment_methods' => $this->ecpay_payment_methods,
             'ecpay_payment_methods_special' => $this->helper->ecpayPaymentMethodsSpecial
-        );
-        echo $this->genHtml->show_ecpay_payment_methods_html($data);
+        ];
+        wc_get_template('admin/ECPay-admin-settings-payment-methods.php', $args, '', ECPAY_PAYMENT_PLUGIN_PATH . 'templates/');
 
         return ob_get_clean();
     }
@@ -634,7 +632,6 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
      */
     private function payment_details( $order_id = '' )
     {
-
         $account_html = '';
         $has_details = false ;
         $a_has_details = array();
@@ -658,7 +655,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                 );
 
                 $has_details = true ;
-            break;
+                break;
 
             case ECPay_PaymentMethod::ATM:
                 $BankCode = get_post_meta($order_id, 'BankCode', true);
@@ -680,9 +677,8 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                             )
                 );
 
-
                 $has_details = true ;
-            break;
+                break;
         }
 
         $account_html .= '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">' . PHP_EOL;
@@ -692,7 +688,6 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         }
 
         $account_html .= '</ul>';
-
 
         if ( $has_details ) {
             echo '<section><h2>' . $this->tran( 'Payment details' ) . '</h2>' . PHP_EOL . $account_html . '</section>';
@@ -706,7 +701,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
      */
     public function action_woocommerce_admin_order_status_cancel()
     {
-        try{
+        try {
             global $post;
 
             // 訂單編號
@@ -715,21 +710,21 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
             // 是否反查過訂單
             $is_expire = get_post_meta($order_id, '_ecpay_payment_is_expire', true);
 
-            if ($is_expire == $this->helper->isExpire['no']) {
+            if ($is_expire === $this->helper->isExpire['no']) {
 
                 // 取得傳入資料
                 $order                      = wc_get_order($order_id);
                 $order_status               = $order->get_status();                                                // 訂單狀態
                 $payment_method             = $order->get_payment_method();                                        // 付款方式
-                $date_created               = $order->get_date_created()->format('Y-m-d H:i:s');                   // 訂單建立時間
+                $date_created               = $order->get_date_created()->getTimestamp();                          // 訂單建立時間
                 $ecpay_payment_method       = get_post_meta($order_id, '_ecpay_payment_method', true);             // 綠界付款方式
                 $stage_payment_order_prefix = get_post_meta($order_id, '_ecpay_payment_stage_order_prefix', true); // 測試訂單編號前綴
                 $hold_stock_minutes         = empty(get_option('woocommerce_hold_stock_minutes')) ? 0 : get_option('woocommerce_hold_stock_minutes'); // 取得保留庫存時間
 
                 // 組合傳入資料
                 $data = array(
-                    'hashKey' => $this->ecpay_hash_key,
-                    'hashIv' => $this->ecpay_hash_iv,
+                    'hashKey'            => $this->ecpay_hash_key,
+                    'hashIv'             => $this->ecpay_hash_iv,
                     'orderId'            => $order_id,
                     'holdStockMinute'    => $hold_stock_minutes,
                     'orderStatus'        => $order_status,
@@ -741,20 +736,20 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
                 $feedback = $this->helper->expiredOrder($data);
 
                 // 交易失敗
-                if ($feedback['TradeStatus'] == $this->helper->tradeStatusCodes['emptyPaymentMethod']) {
+                if (isset($feedback['TradeStatus']) && $feedback['TradeStatus'] == $this->helper->tradeStatusCodes['emptyPaymentMethod']) {
                     // 更新訂單狀態/備註
                     $order->add_order_note($this->tran( $this->helper->msg['unpaidOrder'], 'woocommerce' ), ECPay_OrderNoteEmail::CANCEL_ORDER);
                     $order->update_status('cancelled');
                     update_post_meta($order_id, '_ecpay_payment_is_expire', $this->helper->isExpire['yes'] );
-                    echo '<p class="form-field form-field-wide" style="color:red;">※ '. $this->tran('The order has changed, please refresh your browser.') .'</p>';
-                    ?>
-                    <script>
-                        alert("<?php echo $this->tran('The order has changed, please refresh your browser.'); ?>");
-                    </script>
-                    <?php
+
+                    // 提示
+                    $args = [
+                        'msg' => $this->tran('The order has changed, please refresh your browser.')
+                    ];
+                    wc_get_template('admin/ECPay-admin-order-expire.php', $args, '', ECPAY_PAYMENT_PLUGIN_PATH . 'templates/');
                 }
             }
-        }catch(Exception $e) {
+        } catch(Exception $e) {
             echo $e->getMessage();
         }
     }
@@ -879,8 +874,6 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         # Load the helper
         $this->helper = ECPay_PaymentCommon::getHelper();
         $this->helper->setMerchantId($this->ecpay_merchant_id);
-        $this->helper->setTimezone(get_option('timezone_string'));
-        $this->helper->setOrderStatus(ECPay_PaymentCommon::getOrderStatus());
 
         # Load ECPay.Payment.Html
         $this->genHtml = ECPay_PaymentCommon::genHtml();
@@ -932,7 +925,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
             'my_custom_script',
             plugins_url( 'assets/js/ecpay-payment.js', ECPAY_PAYMENT_MAIN_FILE ),
             array('jquery'),
-            '1.2.2001070',
+            ECPAY_PAYMENT_PLUGIN_VERSION,
             true
         );
 
@@ -1335,6 +1328,13 @@ class ECPay_PaymentCommon
     public static function getHelper()
     {
         $helper = new ECPayPaymentHelper();
+
+        # 設定時區
+        $helper->setTimezone(static::getTimezone());
+
+        # 設定訂單狀態
+        $helper->setOrderStatus(static::getOrderStatus());
+
         return $helper;
     }
 
@@ -1346,6 +1346,18 @@ class ECPay_PaymentCommon
     {
         $genHtml = new ECPayPaymentGenerateHtml();
         return $genHtml;
+    }
+
+    /**
+     * 取得時區
+     *
+     * @return array
+     */
+    public static function getTimezone()
+    {
+        $timezone = (get_option('timezone_string') === '') ? date_default_timezone_get() : get_option('timezone_string');
+
+        return $timezone;
     }
 
     /**

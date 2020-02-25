@@ -90,15 +90,16 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
         'GooglePay'
     );
 
+    /**
+     * @var array 是否到期
+     */
     public $isExpire = array(
         'yes' => 'Y',
         'no' => 'N',
     );
 
     /**
-     * 交易狀態代碼
-     *
-     * @var array
+     * @var array 交易狀態代碼
      */
     public $tradeStatusCodes = array(
         'notFoundTradeData'  => '10200047',
@@ -117,9 +118,7 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
     );
 
     /**
-     * 提示訊息
-     *
-     * @var array
+     * @var array 提示訊息
      */
     public $msg = array(
         'unpaidOrder'     => 'Unpaid order cancelled - time limit reached.', // 未付款訂單已取消 - 付款期限已過。
@@ -140,6 +139,11 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
         $this->serviceUrls['stage'] = 'https://payment-stage.'. $this->prefix .'.com.tw';
     }
 
+    /**
+     * checkoutPrepare
+     * @param  array $data The data for checkout
+     * @return void
+     */
     private function checkoutPrepare($data)
     {
         // Filter inputs
@@ -275,7 +279,7 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
 
         $feedback = array();
 
-        // 確認付款方式為'綠界定期定額'且訂單狀態為'等待付款中'或'取消'
+        // 確認付款方式為'綠界'且訂單狀態為'等待付款中'或'取消'
         if (in_array($inputs['paymentMethod'], $this->ecpayPayment) && ($inputs['orderStatus'] == $this->getOrderStatusPending() || $inputs['orderStatus'] == $this->getOrderStatusCancelled())) {
 
             // 計算訂單建立時間是否超過指定時間
@@ -284,13 +288,17 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
             } else {
                 $offset =  60; // 信用卡
             }
+
             // 若使用者自訂的保留時間 > 綠界時間，則使用使用者設定的時間
             if ($inputs['holdStockMinute'] > $offset) {
                 $offset = $inputs['holdStockMinute'];
             }
-            $date_compare  = date('Y-m-d H:i:s', strtotime('- '. $offset .' minute'));
 
-            if(strtotime($inputs['createDate']) <= strtotime($date_compare)){
+            // 比對時間，使用 Unix time 比對
+            $createDate  = $inputs['createDate'];
+            $dateCompare = $this->getUnixTime('- '. $offset .' minute');
+
+            if ($createDate <= $dateCompare) {
 
                 // 反查綠界訂單記錄API
                 if ($this->isTestMode($this->getMerchantId()) === true) {
@@ -547,19 +555,19 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
             return $undefinedMessage;
         }
 
-            $list = array(
-                'PaymentType',
-                'RtnCode',
-                'RtnMsg',
-                'BankCode',
-                'vAccount',
-                'ExpireDate',
-                'PaymentNo',
-                'Barcode1',
-                'Barcode2',
-                'Barcode3',
-            );
-            $inputs = $this->only($feedback, $list);
+        $list = array(
+            'PaymentType',
+            'RtnCode',
+            'RtnMsg',
+            'BankCode',
+            'vAccount',
+            'ExpireDate',
+            'PaymentNo',
+            'Barcode1',
+            'Barcode2',
+            'Barcode3',
+        );
+        $inputs = $this->only($feedback, $list);
 
         $type = $this->getPaymentMethod($inputs['PaymentType']);
         switch($type) {
