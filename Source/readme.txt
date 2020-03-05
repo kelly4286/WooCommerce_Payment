@@ -2,13 +2,13 @@
 Contributors: ecpaytechsupport
 Tags: ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, payment, ecpay
 Requires at least: 4.5
-Tested up to: 5.2
+Tested up to: 5.3
 Requires PHP: 5.6 or later
 Stable tag: 1.2.2001070
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-綠界科技金流外掛套件，提供合作特店以及個人會員使用開放原始碼商店系統時，無須自行處理複雜的檢核，直接透過安裝設定外掛套件，便可以較快速的方式介接綠界科技的金流系統。
+綠界科技金流外掛套件
 
 == Description ==
 
@@ -62,6 +62,9 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 == Frequently Asked Questions ==
 
 == Changelog ==
+
+v1.2.2003020
+調整 cURL timeout
 
 v1.2.2002200
 更新 Applepay SDK

@@ -38,16 +38,30 @@ final class ECPay_Woo_AllInOne extends ECPay_AllInOne {
 }
 
 /**
-* 抽象類
-*/
+ * cURL 設定值
+ */
+abstract class ECPay_Woo_Payment_Curl {
+
+    /**
+     * @var int 逾時時間
+     */
+    const TIMEOUT = 30;
+
+}
+
+/**
+ * 抽象類
+ */
 abstract class ECPay_Woo_Aio extends ECPay_Aio
 {
 
     protected static function ServerPost($Params ,$ServiceURL) {
 
         $fields_string = http_build_query($Params);
+
         $rs = wp_remote_post($ServiceURL, array(
             'method'      => 'POST',
+            'timeout'     => ECPay_Woo_Payment_Curl::TIMEOUT,
             'headers'     => array(),
             'httpversion' => '1.0',
             'sslverify'   => true,
