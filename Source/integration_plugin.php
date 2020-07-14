@@ -1,18 +1,18 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.2.2003020
+ * @version 1.2.2007070
  *
  * Plugin Name: ECPay Payment for WooCommerce
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.2.2003020
+ * Version: 1.2.2007070
  * Author: ECPay Green World FinTech Service Co., Ltd.
  * Author URI: https://www.ecpay.com.tw
  * License: GPLv2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.txt
  * WC requires at least: 3
- * WC tested up to: 3.9.2
+ * WC tested up to: 4.2.2
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,7 +27,7 @@ define( 'ECPAY_PAYMENT_VERSION', '3.1.6' );
 define( 'ECPAY_PAYMENT_MIN_PHP_VER', '4.5.0' );
 define( 'ECPAY_PAYMENT_MIN_WC_VER', '3.0.0' );
 define( 'ECPAY_PAYMENT_MAIN_FILE', __FILE__ );
-define( 'ECPAY_PAYMENT_PLUGIN_VERSION', '1.2.2003020' );
+define( 'ECPAY_PAYMENT_PLUGIN_VERSION', '1.2.2007070' );
 define( 'ECPAY_PAYMENT_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'ECPAY_PAYMENT_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
