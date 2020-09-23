@@ -1,18 +1,18 @@
 <?php
 /**
  * @copyright Copyright (c) 2016 Green World FinTech Service Co., Ltd. (https://www.ecpay.com.tw)
- * @version 1.2.2007070
+ * @version 2.0.2009210
  *
  * Plugin Name: ECPay Payment for WooCommerce
  * Plugin URI: https://www.ecpay.com.tw
  * Description: ECPay Integration Payment Gateway for WooCommerce
- * Version: 1.2.2007070
+ * Version: 2.0.2009210
  * Author: ECPay Green World FinTech Service Co., Ltd.
  * Author URI: https://www.ecpay.com.tw
  * License: GPLv2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.txt
- * WC requires at least: 3
- * WC tested up to: 4.2.2
+ * WC requires at least: 3.1
+ * WC tested up to: 4.5.2
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,11 +23,10 @@ require_once(ABSPATH . 'wp-admin/includes/file.php');
 /**
  * Required minimums and constants
  */
-define( 'ECPAY_PAYMENT_VERSION', '3.1.6' );
-define( 'ECPAY_PAYMENT_MIN_PHP_VER', '4.5.0' );
-define( 'ECPAY_PAYMENT_MIN_WC_VER', '3.0.0' );
+define( 'ECPAY_PAYMENT_MIN_PHP_VER', '5.6.0' );
+define( 'ECPAY_PAYMENT_MIN_WC_VER', '3.1.0' );
 define( 'ECPAY_PAYMENT_MAIN_FILE', __FILE__ );
-define( 'ECPAY_PAYMENT_PLUGIN_VERSION', '1.2.2007070' );
+define( 'ECPAY_PAYMENT_PLUGIN_VERSION', '2.0.2009210' );
 define( 'ECPAY_PAYMENT_PLUGIN_URL', untrailingslashit( plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) ) );
 define( 'ECPAY_PAYMENT_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -103,7 +102,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
          */
         static function get_environment_warning() {
 
-            if ( version_compare( phpversion(), ECPAY_PAYMENT_MIN_PHP_VER, '<' ) ) {
+            if ( version_compare( phpversion(), ECPAY_PAYMENT_MIN_PHP_VER, '<=' ) ) {
                 $message = __( '%1$sECPay Payment for WooCommerce Gateway%2$s - The minimum PHP version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
 
                 return sprintf( $message, '<strong>', '</strong>', ECPAY_PAYMENT_MIN_PHP_VER, phpversion() );
@@ -115,7 +114,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                 return sprintf( $message, '<strong>', '</strong>' );
             }
 
-            if ( version_compare( WC_VERSION, ECPAY_PAYMENT_MIN_WC_VER, '<' ) ) {
+            if ( version_compare( WC_VERSION, ECPAY_PAYMENT_MIN_WC_VER, '<=' ) ) {
                 $message = __( '%1$sECPay Payment for WooCommerce Gateway%2$s - The minimum WooCommerce version required for this plugin is %3$s. You are running %4$s.', 'ecpay' );
 
                 return sprintf( $message, ECPAY_PAYMENT_MIN_WC_VER, WC_VERSION );

@@ -105,7 +105,7 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 		$this->MerchantID		= ! empty( $gateway_settings['ecpay_merchant_id'] ) ? $gateway_settings['ecpay_merchant_id'] : '';
 		$this->HashKey 			= ! empty( $gateway_settings['ecpay_hash_key'] ) 	? $gateway_settings['ecpay_hash_key']    : '';
 		$this->HashIV			= ! empty( $gateway_settings['ecpay_hash_iv'] ) 	? $gateway_settings['ecpay_hash_iv']     : '';
-		$this->ecpay_test_mode 	= ! empty( $gateway_settings['ecpay_test_mode'] ) 	? $gateway_settings['ecpay_test_mode']   : 1;
+		$this->ecpay_test_mode 	= $this->isTestMode($this->MerchantID);
 
 		$this->init();
 	}
@@ -324,6 +324,17 @@ class WC_Ecpay_Apple_Pay extends WC_Gateway_Ecpay {
 
 		exit;
 	}
+
+	/**
+     * Check test mode by merchant id
+     * @param string $merchantId Merchant ID
+     * @return bool
+     */
+    public function isTestMode($merchantId = '')
+    {
+		$stageMerchantIds = array('2000132', '2000214');
+        return in_array($merchantId, $stageMerchantIds) ? 'yes' : 'no';
+    }
 }
 
 new WC_Ecpay_Apple_Pay();

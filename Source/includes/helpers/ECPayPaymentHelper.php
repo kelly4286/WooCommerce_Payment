@@ -133,7 +133,7 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
     public function __construct()
     {
         parent::__construct();
-        $this->encryptType = ECPay_EncryptType::ENC_MD5;
+        $this->encryptType = ECPay_EncryptType::ENC_SHA256;
         $this->setStageMerchantIds(array('2000132', '2000214'));
         $this->serviceUrls['prod'] = 'https://payment.'. $this->prefix .'.com.tw';
         $this->serviceUrls['stage'] = 'https://payment-stage.'. $this->prefix .'.com.tw';

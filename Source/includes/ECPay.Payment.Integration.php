@@ -742,6 +742,7 @@ class ECPay_QueryTradeInfo extends ECPay_Aio
         $arFeedback = array();
         $arConfirmArgs = array();
 
+        // 注意: 查詢訂單 API 未提供 EncryptType 參數
         $EncryptType = $arParameters["EncryptType"];
         unset($arParameters["EncryptType"]);
 

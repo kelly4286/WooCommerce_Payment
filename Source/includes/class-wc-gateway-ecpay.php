@@ -1,5 +1,7 @@
 <?php
 
+include_once(plugin_dir_path( __FILE__ ) . 'class-wc-ecpay-gateway-base.php');
+
 /**
  * 訂單新增備註mail通知信(0:關閉/1:啟用)
  */
@@ -20,7 +22,7 @@ abstract class ECPay_OrderNoteEmail
 /**
  * 綠界科技 - 一般付款
  */
-class WC_Gateway_Ecpay extends WC_Payment_Gateway
+class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 {
     public $ecpay_test_mode;
     public $ecpay_merchant_id;
@@ -47,7 +49,6 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
 
         $this->title                 = $this->get_option('title');
         $this->description           = $this->get_option('description');
-        $this->ecpay_test_mode       = $this->get_option('ecpay_test_mode');
         $this->ecpay_merchant_id     = $this->get_option('ecpay_merchant_id');
         $this->ecpay_hash_key        = $this->get_option('ecpay_hash_key');
         $this->ecpay_hash_iv         = $this->get_option('ecpay_hash_iv');
@@ -55,6 +56,7 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         # Load the helper
         $this->helper = ECPay_PaymentCommon::getHelper();
         $this->helper->setMerchantId($this->ecpay_merchant_id);
+        $this->ecpay_test_mode = ($this->helper->isTestMode($this->ecpay_merchant_id)) ? 'yes' : 'no';
 
         # Load ECPay.Payment.Html
         $this->genHtml = ECPay_PaymentCommon::genHtml();
@@ -74,13 +76,8 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_payment_options'));
 
-        # Register a action to redirect to ECPay payment center
-        add_action('woocommerce_receipt_' . $this->id, array($this, 'receipt_page'));
-
-        # Register a action to process the callback
-        add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
-
-        add_action('woocommerce_thankyou_ecpay', array( $this, 'thankyou_page' ) );
+        $this->add_checkout_actions();
+        $this->add_get_plugin_info_filters();
 
         # 訂單明細頁
         add_action('woocommerce_admin_order_data_after_order_details', array($this, 'action_woocommerce_admin_order_status_cancel'));
@@ -190,89 +187,6 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
             'result' => 'success',
             'redirect' => $order->get_checkout_payment_url(true)
         );
-    }
-
-    /**
-     * Redirect to ECPay
-     */
-    public function receipt_page($order_id)
-    {
-        # Clean the cart
-        global $woocommerce;
-        $woocommerce->cart->empty_cart();
-
-        // 撈取訂單資訊
-        $order = new WC_Order($order_id);
-        $notes = $order->get_customer_order_notes();
-
-        // 儲存訂單資訊
-        $stage_order_prefix = $this->helper->getMerchantOrderPrefix();
-        $data = array(
-            'ecpay_test_mode'    => $this->ecpay_test_mode,
-            'order_id'           => $order_id,
-            'notes'              => $notes[0],
-            'stage_order_prefix' => $stage_order_prefix,
-            'is_expire'          => $this->helper->isExpire['no'],
-        );
-        ECPay_PaymentCommon::ecpay_save_payment_order_info($data);
-
-        if ($notes[0]->comment_content == 'ApplePay') {
-            $gateway_settings = get_option( 'woocommerce_ecpay_settings', '' );
-
-            // 載入CSS
-            wp_enqueue_style( 'ecpay_apple_pay', plugins_url( 'assets/css/ecpay-apple-pay.css', ECPAY_PAYMENT_MAIN_FILE ), array());
-
-            // 載入JS
-            wp_enqueue_script( 'ecpay_apple_pay', plugins_url( 'assets/js/ecpay-apple-pay.js', ECPAY_PAYMENT_MAIN_FILE ), array(), null, true);
-
-            // 參數往前端送
-            $ecpay_params = array(
-                'lable'         => get_option('blogname'),
-                'ajaxurl'       => admin_url().'admin-ajax.php',
-                'total'         => $order->get_total(),
-                'display_name'  => $gateway_settings['ecpay_apple_display_name'],
-                'order_id'      => $order_id,
-                'site_url'      => get_site_url(),
-                'server_https'  => sanitize_text_field($_SERVER['HTTPS']),
-                'test_mode'     => $this->ecpay_test_mode,
-                'clientBackUrl' => $this->get_return_url($order),
-            );
-
-            wp_localize_script( 'ecpay_apple_pay', 'wc_ecpay_apple_pay_params', $ecpay_params );
-
-            // 產生 Html
-            $data = array(
-                'apple_pay_button' => $this->apple_pay_button,
-                'apple_pay_button_lang' => $this->apple_pay_button_lang
-            );
-            echo $this->genHtml->show_applepay_button($data);
-
-        } else {
-            try {
-                # Get the chosen payment and installment
-                $notes = $order->get_customer_order_notes();
-                $choose_payment = isset($notes[0]) ? $notes[0]->comment_content : '';
-
-                $data = array(
-                    'choosePayment'     => $choose_payment,
-                    'hashKey'           => $this->ecpay_hash_key,
-                    'hashIv'            => $this->ecpay_hash_iv,
-                    'returnUrl'         => add_query_arg('wc-api', 'WC_Gateway_Ecpay', home_url('/')),
-                    'clientBackUrl'     => $this->get_return_url($order),
-                    'orderId'           => $order->get_id(),
-                    'total'             => $order->get_total(),
-                    'itemName'          => $this->tran('A Package Of Online Goods'),
-                    'cartName'          => 'woocommerce',
-                    'currency'          => $order->get_currency(),
-                    'needExtraPaidInfo' => 'Y',
-                );
-
-                $this->helper->checkout($data);
-                exit;
-            } catch(Exception $e) {
-                $this->ECPay_add_error($e->getMessage());
-            }
-        }
     }
 
     /**
@@ -813,12 +727,159 @@ class WC_Gateway_Ecpay extends WC_Payment_Gateway
         wc_add_notice(esc_html($error_message), 'error');
     }
 
+    /**
+     * 轉導綠界付款頁
+     *
+     * @param int $order_id
+     * @return void
+     */
+    public function ecpay_redirect_payment_center($order_id)
+    {
+        # Clean the cart
+        global $woocommerce;
+        $woocommerce->cart->empty_cart();
+
+        // 撈取訂單資訊
+        $order = new WC_Order($order_id);
+        $notes = $order->get_customer_order_notes();
+
+        // 儲存訂單資訊
+        $stage_order_prefix = $this->helper->getMerchantOrderPrefix();
+        $data = array(
+            'ecpay_test_mode'    => $this->ecpay_test_mode,
+            'order_id'           => $order_id,
+            'notes'              => $notes[0],
+            'stage_order_prefix' => $stage_order_prefix,
+            'is_expire'          => $this->helper->isExpire['no'],
+        );
+        ECPay_PaymentCommon::ecpay_save_payment_order_info($data);
+        
+        if ($notes[0]->comment_content == 'ApplePay') {
+            $gateway_settings = get_option( 'woocommerce_ecpay_settings', '' );
+
+            // 載入CSS
+            wp_enqueue_style( 'ecpay_apple_pay', plugins_url( 'assets/css/ecpay-apple-pay.css', ECPAY_PAYMENT_MAIN_FILE ), array());
+
+            // 載入JS
+            wp_enqueue_script( 'ecpay_apple_pay', plugins_url( 'assets/js/ecpay-apple-pay.js', ECPAY_PAYMENT_MAIN_FILE ), array(), null, true);
+
+            // 參數往前端送
+            $ecpay_params = array(
+                'lable'         => get_option('blogname'),
+                'ajaxurl'       => admin_url().'admin-ajax.php',
+                'total'         => $order->get_total(),
+                'display_name'  => $gateway_settings['ecpay_apple_display_name'],
+                'order_id'      => $order_id,
+                'site_url'      => get_site_url(),
+                'server_https'  => sanitize_text_field($_SERVER['HTTPS']),
+                'test_mode'     => $this->ecpay_test_mode,
+                'clientBackUrl' => $this->get_return_url($order),
+            );
+
+            wp_localize_script( 'ecpay_apple_pay', 'wc_ecpay_apple_pay_params', $ecpay_params );
+
+            // 產生 Html
+            $data = array(
+                'apple_pay_button' => $this->apple_pay_button,
+                'apple_pay_button_lang' => $this->apple_pay_button_lang
+            );
+            echo $this->genHtml->show_applepay_button($data);
+
+        } else {
+            try {
+                # Get the chosen payment and installment
+                $notes = $order->get_customer_order_notes();
+                $choose_payment = isset($notes[0]) ? $notes[0]->comment_content : '';
+
+                $data = array(
+                    'choosePayment'     => $choose_payment,
+                    'hashKey'           => $this->ecpay_hash_key,
+                    'hashIv'            => $this->ecpay_hash_iv,
+                    'returnUrl'         => add_query_arg('wc-api', 'WC_Gateway_Ecpay', home_url('/')),
+                    'clientBackUrl'     => $this->get_return_url($order),
+                    'orderId'           => $order->get_id(),
+                    'total'             => $order->get_total(),
+                    'itemName'          => $this->tran('A Package Of Online Goods'),
+                    'cartName'          => 'woocommerce',
+                    'currency'          => $order->get_currency(),
+                    'needExtraPaidInfo' => 'Y',
+                );
+
+                $this->helper->checkout($data);
+                exit;
+            } catch(Exception $e) {
+                $this->ECPay_add_error($e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * 新增取得模組資訊 Filters
+     *
+     * @return void
+     */
+    private function add_get_plugin_info_filters()
+    {
+        $filters = array(
+            'ecpay_is_payment_enabled',
+            'ecpay_get_payment_plugin_version',
+        );
+        $parent = $this;
+        array_walk($filters, function ($value) use ($parent) {
+            add_filter($value, array($parent, $value));
+        });
+    }
+
+    /**
+     * 檢查金流模組是否啟用
+     *
+     * @return bool
+     */
+    public function ecpay_is_payment_enabled()
+    {
+        $enabled = false;
+        try {
+            if (!property_exists($this, 'id')) {
+                throw new Exception('Property "id" does not exist!');
+            }
+
+            $setting = get_option( 'woocommerce_' . $this->id . '_settings', '' );
+            if (empty($setting)) {
+                throw new Exception('Payment settings is empty!');
+            }
+
+            if (!isset($setting['enabled'])) {
+                throw new Exception('Payment settings "enabled" is empty!');
+            }
+
+            $enabled = $setting['enabled'];
+        } catch (Exception $e) {
+
+        }
+
+        return $enabled;
+    }
+
+    /**
+     * 取得金流模組版本
+     *
+     * @return string
+     */
+    public function ecpay_get_payment_plugin_version()
+    {
+        $version = '';
+        if (defined('ECPAY_PAYMENT_PLUGIN_VERSION')) {
+            $version = ECPAY_PAYMENT_PLUGIN_VERSION;
+        }
+
+        return $version;
+    }
 }
 
 /**
  * 綠界科技 - 定期定額
  */
-class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
+class WC_Gateway_Ecpay_DCA extends WC_Gateway_Ecpay_Base
 {
     public $ecpay_test_mode;
     public $ecpay_merchant_id;
@@ -856,7 +917,6 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         $this->title = $this->get_option( 'title' );
 
         $admin_options = get_option('woocommerce_ecpay_settings');
-        $this->ecpay_test_mode = $admin_options['ecpay_test_mode'];
         $this->ecpay_merchant_id = $admin_options['ecpay_merchant_id'];
         $this->ecpay_hash_key = $admin_options['ecpay_hash_key'];
         $this->ecpay_hash_iv = $admin_options['ecpay_hash_iv'];
@@ -874,6 +934,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         # Load the helper
         $this->helper = ECPay_PaymentCommon::getHelper();
         $this->helper->setMerchantId($this->ecpay_merchant_id);
+        $this->ecpay_test_mode = ($this->helper->isTestMode($this->ecpay_merchant_id)) ? 'yes' : 'no';
 
         # Load ECPay.Payment.Html
         $this->genHtml = ECPay_PaymentCommon::genHtml();
@@ -882,13 +943,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'save_dca_details' ) );
 
-        # Register a action to redirect to ECPay payment center
-        add_action('woocommerce_receipt_' . $this->id, array($this, 'receipt_page'));
-
-        # Register a action to process the callback
-        add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
-
-        add_action( 'woocommerce_thankyou_ecpay', array( $this, 'thankyou_page' ) );
+        $this->add_checkout_actions();
     }
 
     /**
@@ -1068,9 +1123,12 @@ class WC_Gateway_Ecpay_DCA extends WC_Payment_Gateway
     }
 
     /**
-     * Redirect to ECPay
+     * 轉導綠界付款頁
+     *
+     * @param int $order_id
+     * @return void
      */
-    public function receipt_page($order_id)
+    public function ecpay_redirect_payment_center($order_id)
     {
         # Clean the cart
         global $woocommerce;

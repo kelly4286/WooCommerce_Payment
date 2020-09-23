@@ -2,9 +2,9 @@
 Contributors: ecpaytechsupport
 Tags: ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, payment, ecpay
 Requires at least: 4.5
-Tested up to: 5.4
+Tested up to: 5.5.1
 Requires PHP: 5.6 or later
-Stable tag: 1.2.2007070
+Stable tag: 2.0.2009210
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,11 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 == Frequently Asked Questions ==
 
 == Changelog ==
+
+v2.0.2009210
+調整結帳流程
+調整 chrome samesite 屬性相容性
+移除後台設定欄位「測試模式」
 
 v1.2.2007070
 修正相容性至 WordPress Version 5.4.2
