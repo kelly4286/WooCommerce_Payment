@@ -796,6 +796,7 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
                     'hashKey'           => $this->ecpay_hash_key,
                     'hashIv'            => $this->ecpay_hash_iv,
                     'returnUrl'         => add_query_arg('wc-api', 'WC_Gateway_Ecpay', home_url('/')),
+                    'periodReturnURL'   => add_query_arg('wc-api', 'WC_Gateway_Ecpay_DCA', home_url('/')),
                     'clientBackUrl'     => $this->get_return_url($order),
                     'orderId'           => $order->get_id(),
                     'total'             => $order->get_total(),
