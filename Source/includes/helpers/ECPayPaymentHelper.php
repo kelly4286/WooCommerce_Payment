@@ -760,8 +760,19 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
         $this->sdk->MerchantID = $this->getMerchantId();
         $this->sdk->HashKey = $inputs['hashKey'];
         $this->sdk->HashIV = $inputs['hashIv'];
-        $this->sdk->EncryptType = $this->encryptType;
-        $feedback = $this->sdk->CheckOutFeedback();
+        $this->sdk->EncryptType = ECPay_EncryptType::ENC_SHA256;
+        try {
+            $feedback = $this->sdk->CheckOutFeedback();
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            if ($error === 'CheckMacValue verify fail.') {
+                // 定期定額可能有 MD5 壓碼的舊訂單，增加 MD5 壓碼相容性
+                $this->sdk->EncryptType = ECPay_EncryptType::ENC_MD5;
+                $feedback = $this->sdk->CheckOutFeedback();
+            } else {
+                throw new Exception ($error);
+            }
+        }
         if (count($feedback) < 1) {
             throw new Exception($this->provider . ' feedback is empty.');
         }

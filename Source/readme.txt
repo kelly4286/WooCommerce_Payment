@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, store, sales, sell, shop, cart, checkout, payment, 
 Requires at least: 4.5
 Tested up to: 5.5.1
 Requires PHP: 5.6 or later
-Stable tag: 2.0.2010210
+Stable tag: 2.0.2104150
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,9 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 == Frequently Asked Questions ==
 
 == Changelog ==
+
+v2.0.2104150
+修正部份情境下定期定額訂單無法更新授權結果問題
 
 v2.0.2010210
 修正定期定額訂單不會自動開立發票問題
