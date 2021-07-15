@@ -3,7 +3,7 @@
 include_once(plugin_dir_path( __FILE__ ) . 'class-wc-ecpay-gateway-base.php');
 
 /**
- * 訂單新增備註mail通知信(0:關閉/1:啟用)
+ * 訂單新增備註 mail 通知信 (0:關閉/1:啟用)
  */
 abstract class ECPay_OrderNoteEmail
 {
@@ -39,7 +39,6 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
         $this->method_title = $this->tran('ECPay');
         $this->method_description = $this->tran('ECPay is the most popular payment gateway for online shopping in Taiwan');
         $this->has_fields = true;
-        $this->icon = apply_filters('woocommerce_ecpay_icon', plugins_url('images/icon.png', dirname( __FILE__ )));
 
         # Load the form fields
         $this->init_form_fields();
@@ -96,10 +95,6 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     public function payment_fields()
     {
-        if (!empty($this->description)) {
-            echo $this->helper->addNextLine(esc_html($this->description) . '<br /><br />');
-        }
-
         if ( is_checkout() && ! is_wc_endpoint_url( 'order-pay' ) ) {
             // 產生 Html
             $data = array(
@@ -109,6 +104,9 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
             echo $this->genHtml->show_ecpay_payment_fields($data);
         } else {
             echo $this->tran('Duplicate payment is not supported, please try to place the order once again.');
+        }
+        if (!empty($this->description)) {
+            echo $this->helper->addNextLine($this->description);
         }
     }
 
@@ -189,10 +187,25 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
         );
     }
 
+    public function order_received($order_id)
+    {
+		$intHasChanged = get_post_meta($order_id, '_'.$this->id.'_order-status_has_changed', true);
+		if ($intHasChanged) return;
+
+		$order = new WC_Order($order_id);
+		$strOrderStatus = $order->get_status();
+		if ($strOrderStatus != 'pending' && $strOrderStatus != 'on-hold') return;
+
+		if ($this->get_option('status_change') != $strOrderStatus) {
+			$order->update_status($this->get_option('status_change'));
+			update_post_meta($order_id, '_'.$this->id.'_order-status_has_changed', 1);
+		}
+	}
+
     /**
      * Process the callback
      */
-    public function receive_response()
+    public function receive_response($order_id)
     {
         $result_msg = '1|OK';
         $order = null;
@@ -206,192 +219,171 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 
             if (count($ecpay_feedback) < 1) {
                 throw new Exception('Get ECPay feedback failed.');
-            } else {
-                # Get the cart order id
-                $cart_order_id = $ecpay_feedback['MerchantTradeNo'];
-                if ($this->ecpay_test_mode == 'yes') {
-                    $cart_order_id = substr($ecpay_feedback['MerchantTradeNo'], 12);
-                }
+            } 
+            
+            # Get the cart order id
+            $cart_order_id = $ecpay_feedback['MerchantTradeNo'];
+            if ($this->ecpay_test_mode == 'yes') {
+                $cart_order_id = substr($ecpay_feedback['MerchantTradeNo'], 12);
+            }
 
-                # Get the cart order amount
-                $order = new WC_Order($cart_order_id);
-                $cart_amount = $order->get_total();
+            # Get the cart order amount
+            $order = new WC_Order($cart_order_id);
+            $cart_amount = $order->get_total();
 
-                # Check the amounts
-                $ecpay_amount = $ecpay_feedback['TradeAmt'];
-                if (round($cart_amount) != $ecpay_amount) {
-                    throw new Exception('Order ' . $cart_order_id . ' amount are not identical.');
-                } else {
-                    # Set the common comments
-                    $comments = sprintf(
-                        $this->tran('Payment Method : %s<br />Trade Time : %s<br />'),
-                        esc_html($ecpay_feedback['PaymentType']),
-                        esc_html($ecpay_feedback['TradeDate'])
-                    );
+            # Check the amounts
+            $ecpay_amount = $ecpay_feedback['TradeAmt'];
+            if (round($cart_amount) != $ecpay_amount) {
+                throw new Exception('Order ' . $cart_order_id . ' amount are not identical.');
+            } 
+            
+            # Set the common comments
+            $comments = sprintf(
+                $this->tran('Payment Method : %s<br />Trade Time : %s<br />'),
+                esc_html($ecpay_feedback['PaymentType']),
+                esc_html($ecpay_feedback['TradeDate'])
+            );
 
-                    # Set the getting code comments
-                    $return_code = esc_html($ecpay_feedback['RtnCode']);
-                    $return_message = esc_html($ecpay_feedback['RtnMsg']);
-                    $get_code_result_comments = sprintf(
-                        $this->tran('Getting Code Result : (%s)%s'),
-                        $return_code,
-                        $return_message
-                    );
+            # Set the getting code comments
+            $return_code = esc_html($ecpay_feedback['RtnCode']);
+            $return_message = esc_html($ecpay_feedback['RtnMsg']);
+            $get_code_result_comments = sprintf(
+                $this->tran('Getting Code Result : (%s)%s'),
+                $return_code,
+                $return_message
+            );
 
-                    # Set the payment result comments
-                    $payment_result_comments = sprintf(
-                        $this->tran($this->method_title . ' Payment Result : (%s)%s'),
-                        $return_code,
-                        $return_message
-                    );
+            # Set the payment result comments
+            $payment_result_comments = sprintf(
+                $this->tran($this->method_title . ' Payment Result : (%s)%s'),
+                $return_code,
+                $return_message
+            );
 
-                    # Set the fail message
-                    $fail_msg = sprintf('Order %s Exception.(%s: %s)', $cart_order_id, $return_code, $return_message);
+            # Set the fail message
+            $fail_msg = sprintf('Order %s Exception.(%s: %s)', $cart_order_id, $return_code, $return_message);
 
-                    # Get ECPay payment method
-                    $ecpay_payment_method = $this->helper->getPaymentMethod($ecpay_feedback['PaymentType']);
+            # Get ECPay payment method
+            $ecpay_payment_method = $this->helper->getPaymentMethod($ecpay_feedback['PaymentType']);
 
-                    # Set the order comments
+            # Set the order comments
 
-                    // 20170920
-                    switch($ecpay_payment_method) {
-                        case ECPay_PaymentMethod::Credit:
-                            if ($return_code != 1 and $return_code != 800)
-                            {
-                                throw new Exception($fail_msg);
-                            }
-                            else
-                            {
-                                if (!$this->is_order_complete($order))
-                                {
-                                    $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
+            // 20170920
+            switch($ecpay_payment_method) {
+                case ECPay_PaymentMethod::Credit:
+                    if ($return_code != 1 and $return_code != 800) {
+                        throw new Exception($fail_msg);
+                    } 
 
-                                    // 增加ECPAY付款狀態
-                                    add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                    if (!$this->is_order_complete($order)) {
+                        $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
 
-                                }
-                                else
-                                {
-                                    # The order already paid or not in the standard procedure, do nothing
-                                    //throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
-                                    $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
-                                    if($nEcpay_Payment_Tag == 0)
-                                    {
-                                        $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_CREDIT);
-                                        add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-                                    }
-                                }
-                            }
-                            break;
-                        case ECPay_PaymentMethod::WebATM:
-                        case ECPay_PaymentMethod::GooglePay:
-                            if ($return_code != 1 and $return_code != 800) {
-                                throw new Exception($fail_msg);
-                            } else {
-                                if (!$this->is_order_complete($order))
-                                {
-                                    $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
+                        // 增加ECPAY付款狀態
+                        add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
 
-                                    // 增加ECPAY付款狀態
-                                    add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-                                }
-                                else
-                                {
-                                    # The order already paid or not in the standard procedure, do nothing
-                                   // throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
-                                    $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
-                                    if($nEcpay_Payment_Tag == 0)
-                                    {
-                                        $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_WEB_ATM);
-                                        add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-                                    }
-                                }
-                            }
-                            break;
-                        case ECPay_PaymentMethod::ATM:
-                            if ($return_code != 1 and $return_code != 2 and $return_code != 800) {
-                                throw new Exception($fail_msg);
-                            } else {
-                                if ($return_code == 2) {
-                                    # Set the getting code result
-                                    $comments .= $this->get_order_comments($ecpay_feedback);
-                                    $comments .= $get_code_result_comments;
-                                    $order->add_order_note($comments, ECPay_OrderNoteEmail::PAYMENT_INFO_ATM);
-
-                                    // 紀錄付款資訊提供感謝頁面使用
-                                    add_post_meta( $order->id, 'payment_method', 'ATM', true);
-                                    add_post_meta( $order->id, 'BankCode', sanitize_text_field($ecpay_feedback['BankCode']), true);
-                                    add_post_meta( $order->id, 'vAccount', sanitize_text_field($ecpay_feedback['vAccount']), true);
-                                    add_post_meta( $order->id, 'ExpireDate', sanitize_text_field($ecpay_feedback['ExpireDate']), true);
-                                }
-                                else
-                                {
-                                    if (!$this->is_order_complete($order))
-                                    {
-                                        $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
-
-                                        // 增加ECPAY付款狀態
-                                        add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-
-                                    } else {
-                                        # The order already paid or not in the standard procedure, do nothing
-                                        // throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
-                                        $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
-                                        if($nEcpay_Payment_Tag == 0)
-                                        {
-                                            $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_ATM);
-                                            add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                        case ECPay_PaymentMethod::CVS:
-                        case ECPay_PaymentMethod::BARCODE:
-                            if ($return_code != 1 and $return_code != 800 and $return_code != 10100073) {
-                                throw new Exception($fail_msg);
-                            } else {
-                                if ($return_code == 10100073) {
-                                    # Set the getting code result
-                                    $comments .= $this->get_order_comments($ecpay_feedback);
-                                    $comments .= $get_code_result_comments;
-                                    $order->add_order_note($comments, ECPay_OrderNoteEmail::PAYMENT_INFO_CVS_AND_BARCODE);
-
-                                    if($ecpay_payment_method == ECPay_PaymentMethod::CVS )
-                                    {
-                                        // 紀錄付款資訊提供感謝頁面使用
-                                        add_post_meta( $order->id, 'payment_method', 'CVS', true);
-                                        add_post_meta( $order->id, 'PaymentNo', sanitize_text_field($ecpay_feedback['PaymentNo']), true);
-                                        add_post_meta( $order->id, 'ExpireDate', sanitize_text_field($ecpay_feedback['ExpireDate']), true);
-                                    }
-
-                                } else {
-                                    if (!$this->is_order_complete($order))
-                                    {
-                                        $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
-
-                                        // 增加ECPAY付款狀態
-                                        add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-                                    }
-                                    else
-                                    {
-                                        # The order already paid or not in the standard procedure, do nothing
-                                        // throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
-                                        $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
-                                        if($nEcpay_Payment_Tag == 0)
-                                        {
-                                            $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_CVS_AND_BARCODE);
-                                            add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
-                                        }
-                                    }
-                                }
-                            }
-                            break;
-                        default:
-                            throw new Exception('Invalid payment method of the order ' . $cart_order_id . '.');
-                            break;
+                    } else {
+                        # The order already paid or not in the standard procedure, do nothing
+                        //throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
+                        $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
+                        if($nEcpay_Payment_Tag == 0) {
+                            $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_CREDIT);
+                            add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                        }
                     }
-                }
+                    break;
+                case ECPay_PaymentMethod::WebATM:
+                case ECPay_PaymentMethod::GooglePay:
+                    if ($return_code != 1 and $return_code != 800) {
+                        throw new Exception($fail_msg);
+                    } 
+                    
+                    if (!$this->is_order_complete($order)) {
+                        $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
+
+                        // 增加ECPAY付款狀態
+                        add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                    } else {
+                        # The order already paid or not in the standard procedure, do nothing
+                        // throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
+                        $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
+                        if ($nEcpay_Payment_Tag == 0) {
+                            $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_WEB_ATM);
+                            add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                        }
+                    }
+                    break;
+                case ECPay_PaymentMethod::ATM:
+                    if ($return_code != 1 and $return_code != 2 and $return_code != 800) {
+                        throw new Exception($fail_msg);
+                    } 
+                    
+                    if ($return_code == 2) {
+                        # Set the getting code result
+                        $comments .= $this->get_order_comments($ecpay_feedback);
+                        $comments .= $get_code_result_comments;
+                        $order->add_order_note($comments, ECPay_OrderNoteEmail::PAYMENT_INFO_ATM);
+
+                        // 紀錄付款資訊提供感謝頁面使用
+                        add_post_meta( $order->id, 'payment_method', 'ATM', true);
+                        add_post_meta( $order->id, 'BankCode', sanitize_text_field($ecpay_feedback['BankCode']), true);
+                        add_post_meta( $order->id, 'vAccount', sanitize_text_field($ecpay_feedback['vAccount']), true);
+                        add_post_meta( $order->id, 'ExpireDate', sanitize_text_field($ecpay_feedback['ExpireDate']), true);
+                    } else {
+                        if (!$this->is_order_complete($order)) {
+                            $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
+
+                            // 增加ECPAY付款狀態
+                            add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+
+                        } else {
+                            # The order already paid or not in the standard procedure, do nothing
+                            // throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
+                            $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
+                            if ($nEcpay_Payment_Tag == 0) {
+                                $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_ATM);
+                                add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                            }
+                        }
+                    }
+                    break;
+                case ECPay_PaymentMethod::CVS:
+                case ECPay_PaymentMethod::BARCODE:
+                    if ($return_code != 1 and $return_code != 800 and $return_code != 10100073) {
+                        throw new Exception($fail_msg);
+                    }
+                    
+                    if ($return_code == 10100073) {
+                        # Set the getting code result
+                        $comments .= $this->get_order_comments($ecpay_feedback);
+                        $comments .= $get_code_result_comments;
+                        $order->add_order_note($comments, ECPay_OrderNoteEmail::PAYMENT_INFO_CVS_AND_BARCODE);
+
+                        if ($ecpay_payment_method == ECPay_PaymentMethod::CVS ) {
+                            // 紀錄付款資訊提供感謝頁面使用
+                            add_post_meta( $order->id, 'payment_method', 'CVS', true);
+                            add_post_meta( $order->id, 'PaymentNo', sanitize_text_field($ecpay_feedback['PaymentNo']), true);
+                            add_post_meta( $order->id, 'ExpireDate', sanitize_text_field($ecpay_feedback['ExpireDate']), true);
+                        }
+                    } else {
+                        if (!$this->is_order_complete($order)) {
+                            $this->confirm_order($order, $payment_result_comments, $ecpay_feedback);
+
+                            // 增加ECPAY付款狀態
+                            add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                        } else {
+                            # The order already paid or not in the standard procedure, do nothing
+                            // throw new Exception('The order already paid or not in the standard procedure ' . $cart_order_id . '.');
+                            $nEcpay_Payment_Tag = get_post_meta($order->id, 'ecpay_payment_tag', true);
+                            if ($nEcpay_Payment_Tag == 0) {
+                                $order->add_order_note($payment_result_comments, ECPay_OrderNoteEmail::PAYMENT_RESULT_CVS_AND_BARCODE);
+                                add_post_meta( $order->id, 'ecpay_payment_tag', 1, true);
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    throw new Exception('Invalid payment method of the order ' . $cart_order_id . '.');
+                    break;
             }
         } catch (Exception $e) {
             $error = $e->getMessage();
@@ -535,6 +527,19 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
     public function thankyou_page( $order_id )
     {
 
+        $order = new WC_Order($order_id);
+
+        $order->add_order_note(
+            'Allpay 回傳刷卡成功'."\r\n"
+            .'交易狀態: '.$_POST['RtnCode']."\r\n"
+            .'交易訊息: '.$_POST['RtnMsg']."\r\n"
+            .'交易編號: '.$_POST['TradeNo']."\r\n"
+            .'訂單成立時間: '.$_POST['PaymentDate']."\r\n"
+            .'訂單金額: '.$_POST['TradeAmt']."\r\n"
+            .'付款時間: '.$_POST['TradeDate']
+        );
+
+
         $this->payment_details( $order_id );
 
     }
@@ -552,20 +557,20 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 
         $payment_method = get_post_meta($order_id, 'payment_method', true);
 
-        switch($payment_method) {
+        switch ($payment_method) {
             case ECPay_PaymentMethod::CVS:
                 $PaymentNo = get_post_meta($order_id, 'PaymentNo', true);
                 $ExpireDate = get_post_meta($order_id, 'ExpireDate', true);
 
                 $a_has_details = array(
                     'PaymentNo' => array(
-                                'label' => $this->tran( 'PaymentNo' ),
-                                'value' => $PaymentNo
-                            ),
+                        'label' => $this->tran( 'PaymentNo' ),
+                        'value' => $PaymentNo
+                    ),
                     'ExpireDate' => array(
-                                'label' => $this->tran( 'ExpireDate' ),
-                                'value' => $ExpireDate
-                            )
+                        'label' => $this->tran( 'ExpireDate' ),
+                        'value' => $ExpireDate
+                    )
                 );
 
                 $has_details = true ;
@@ -578,17 +583,17 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 
                 $a_has_details = array(
                     'BankCode' => array(
-                                'label' => $this->tran( 'BankCode' ),
-                                'value' => $BankCode
-                            ),
+                        'label' => $this->tran( 'BankCode' ),
+                        'value' => $BankCode
+                    ),
                     'vAccount' => array(
-                                'label' => $this->tran( 'vAccount' ),
-                                'value' => $vAccount
-                            ),
+                        'label' => $this->tran( 'vAccount' ),
+                        'value' => $vAccount
+                    ),
                     'ExpireDate' => array(
-                                'label' => $this->tran( 'ExpireDate' ),
-                                'value' => $ExpireDate
-                            )
+                        'label' => $this->tran( 'ExpireDate' ),
+                        'value' => $ExpireDate
+                    )
                 );
 
                 $has_details = true ;
@@ -597,8 +602,10 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 
         $account_html .= '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">' . PHP_EOL;
 
-        foreach($a_has_details as $field_key => $field ) {
-            $account_html .= '<li class="' . esc_attr( $field_key ) . '">' . wp_kses_post( $field['label'] ) . ': <strong>' . wp_kses_post( wptexturize( $field['value'] ) ) . '</strong></li>' . PHP_EOL ;
+        foreach ($a_has_details as $field_key => $field ) {
+            $account_html .= '<li class="' . esc_attr( $field_key ) . '">' 
+            . wp_kses_post( $field['label'] ) . ': <strong>' 
+            . wp_kses_post( wptexturize( $field['value'] ) ) . '</strong></li>' . PHP_EOL ;
         }
 
         $account_html .= '</ul>';
@@ -875,6 +882,61 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 
         return $version;
     }
+
+    public function ReciveAllpayReturn()
+    {
+		$option = get_option('woocommerce_cwapcc_settings');
+
+		$order = new WC_Order(self::$intOrderID);
+
+		$arrAllpayInfo = get_post_meta(self::$intOrderID, '_cw-recive-allpay-cc-info', false);
+		if ($arrAllpayInfo) {
+			$strEmail=get_option('admin_email', false);
+			if ($strEmail) {
+				wp_mail($strEmail, '訂單 #'.self::$intOrderID.' 重複刷卡', '訂單 #'.self::$intOrderID.' 重複刷卡');
+			}
+		}
+		update_post_meta(self::$intOrderID, '_cw-recive-allpay-cc-info', $_POST);
+		
+		if ($_POST['RtnCode'] == 1) {
+
+			$order->add_order_note(
+                'Allpay 回傳刷卡成功'."\r\n"
+                .'交易狀態: '.$_POST['RtnCode']."\r\n"
+                .'交易訊息: '.$_POST['RtnMsg']."\r\n"
+                .'交易編號: '.$_POST['TradeNo']."\r\n"
+                .'訂單成立時間: '.$_POST['PaymentDate']."\r\n"
+                .'訂單金額: '.$_POST['TradeAmt']."\r\n"
+                .'付款時間: '.$_POST['TradeDate']
+            );
+
+			delete_post_meta(self::$intOrderID, 'cw-allpay-cc', self::$strMacValue);
+            
+            if (version_compare(WC()->version, '3', '>=')) {
+				wc_reduce_stock_levels(self::$intOrderID);
+			} else {
+				$order->reduce_order_stock();
+			}
+
+			$stdClass = new WC_CWAPCC;
+			$strOrderStatus = $order->get_status();
+			if ($strOrderStatus != 'pending' && $strOrderStatus != 'on-hold')
+                return;
+
+			if ($stdClass->get_option('status_change') != $strOrderStatus) {
+				$order->update_status($stdClass->get_option('status_change'));
+			}
+			do_action('cwapcc_after-receive-return', $order);
+		} else {
+			$order->add_order_note(
+                'Allpay 交易失敗'."\r\n"
+                .'交易狀態: '.$_POST['RtnCode']."\r\n"
+                .'交易訊息: '.$_POST['RtnMsg']."\r\n"
+                .'交易編號: '.$_POST['TradeNo']."\r\n"
+                .'付款時間: '.$_POST['TradeDate']
+            );
+		}
+	}
 }
 
 /**
@@ -976,7 +1038,7 @@ class WC_Gateway_Ecpay_DCA extends WC_Gateway_Ecpay_Base
     {
         ob_start();
 
-        // 引用js
+        // 引用 js
         wp_enqueue_script(
             'my_custom_script',
             plugins_url( 'assets/js/ecpay-payment.js', ECPAY_PAYMENT_MAIN_FILE ),

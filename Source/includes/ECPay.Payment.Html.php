@@ -15,10 +15,7 @@ class ECPayPaymentGenerateHtml
         $ecpay_payment_methods = $data['ecpay_payment_methods'];
 
         // Html
-        $szHtml  = '';
-
-        $szHtml .= $this->tran('Payment Method') . ' : ';
-        $szHtml .= '<select name="ecpay_choose_payment">';
+        $szHtml = '<select name="ecpay_choose_payment">';
         foreach ($ecpay_payment_methods as $payment_method => $value) {
             if (in_array($payment_method, $payment_options)) {
                 $szHtml .= '<option value="' . esc_attr($payment_method) . '">';

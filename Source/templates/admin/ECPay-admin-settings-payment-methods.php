@@ -23,11 +23,6 @@ defined('ECPAY_PAYMENT_PLUGIN_PATH') || exit;
                     if (in_array($key, $payment_options)) {
                         $checked = 'checked';
                     }
-
-                    // 判斷是否為需要申請的付款方式
-                    if (in_array($key, $ecpay_payment_methods_special)) {
-                        $value = $value . ' ( 提醒：商店需先申請為綠界科技的特約會員才可使用此付款方式 )';
-                    }
             ?>
                 <tr class="option-tr">
                     <td>

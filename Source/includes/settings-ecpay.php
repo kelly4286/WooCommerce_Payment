@@ -43,14 +43,14 @@ return apply_filters( 'wc_ecpay_payment_settings',
 			'type' 		=> 'ecpay_payment_methods',
 		),
 		'apple_pay_advanced' => array(
-	                'title'       => $this->tran( 'Apple Pay設定' ),
-	                'type'        => 'title',
-	                'description' => '',
-	        ),
+			'title'       => $this->tran( 'Apple Pay設定' ),
+			'type'        => 'title',
+			'description' => '',
+		),
 		'apple_pay_check_button' => array(
-				'title'       => '<button type="button" id="apple_pay_ca_test">' . $this->tran( '測試憑證' ) . '</button>' ,
-				'type'        => 'title',
-				'description' => '',
+			'title'       => '<button type="button" id="apple_pay_ca_test">' . $this->tran( '測試憑證' ) . '</button>' ,
+			'type'        => 'title',
+			'description' => '',
 		),
 		'ecpay_apple_pay_key_path' => array(
 			'title'		  => $this->tran( 'key憑證路徑' ),
@@ -79,7 +79,7 @@ return apply_filters( 'wc_ecpay_payment_settings',
 			'description' => $this->tran( 'Apple Pay 註冊名稱' ),
 			'default'     => '',
 			'desc_tip'    => true,
-		)
+		),
 		/*
 		,'ecpay_apple_pay_button' => array(
 			'title'       	=> $this->tran( 'Apple Pay Button Style' ),
@@ -94,5 +94,56 @@ return apply_filters( 'wc_ecpay_payment_settings',
 			),
 		),
 		*/
+
+		'sandbox' => array(
+			'title'			=> '測試模式',
+			'type'			=> 'checkbox',
+			'label'			=> '啟用', 
+			'description'	=> '',
+			'default'		=> '',
+			'desc_tip'		=> false
+		), 
+		'method_ecpay' => array(
+			'title'			=> '綠界收款',
+			'type'			=> 'checkbox',
+			'label'			=> '啟用', 
+			'description'	=> '',
+			'default'		=> '',
+			'desc_tip'		=> false
+		), 
+		'method_allpay' => array(
+			'title'			=> '歐付寶收款',
+			'type'			=> 'checkbox',
+			'label'			=> '啟用', 
+			'description'	=> '',
+			'default'		=> '',
+			'desc_tip'		=> false
+		), 
+		'order_button_text' => array(
+			'title'			=> '結帳按鈕文字',
+			'type'			=> 'text',
+			'description'	=> '',
+			'default'		=> '歐付寶線上刷卡',
+			'desc_tip'		=> false
+		),
+		'status_change'	=> array(
+			'title'			=> '訂單狀態',
+			'type'			=> 'select',
+			'description'	=> '成功付款或成功建立訂單後的訂單狀態',
+			'options'		=> array(
+				'processing'	=> '處理中', 
+				'completed'		=> '已完成'
+			),
+			'default'		=> 'processing',
+			'class'			=> 'wc-enhanced-select',
+			'desc_tip'		=> false
+		),
+		'process_payment_lock' => array(
+			'title'			=> '同訂單再次刷卡間隔',
+			'type'			=> 'number',
+			'default'		=> '0', 
+			'description'	=> '鎖定同訂單再次刷卡的區隔時間，單位秒，0 為不限制',
+			'desc_tip'		=> false
+		),
 	)
 );

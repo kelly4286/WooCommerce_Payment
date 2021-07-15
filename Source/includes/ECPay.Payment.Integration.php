@@ -822,8 +822,8 @@ class ECPay_QueryPeriodCreditCardTradeInfo extends ECPay_Aio
 
 class ECPay_DoAction extends ECPay_Aio
 {
-    static function CheckOut($arParameters = array(),$HashKey ='',$HashIV ='',$ServiceURL = ''){
-                // 變數宣告。
+    static function CheckOut($arParameters = array(), $HashKey ='', $HashIV ='', $ServiceURL = '') {
+        // 變數宣告。
         $arErrors = array();
         $arFeedback = array();
 
@@ -1035,29 +1035,29 @@ Abstract class ECPay_Verification
 {
     // 電子發票延伸參數。
     public $arInvoice = array(
-            "RelateNumber",
-            "CustomerIdentifier",
-            "CarruerType" ,
-            "CustomerID" ,
-            "Donation" ,
-            "Print" ,
-            "TaxType",
-            "CustomerName" ,
-            "CustomerAddr" ,
-            "CustomerPhone" ,
-            "CustomerEmail" ,
-            "ClearanceMark" ,
-            "CarruerNum" ,
-            "LoveCode" ,
-            "InvoiceRemark" ,
-            "DelayDay",
-            "InvoiceItemName",
-            "InvoiceItemCount",
-            "InvoiceItemWord",
-            "InvoiceItemPrice",
-            "InvoiceItemTaxType",
-            "InvType"
-        );
+        "RelateNumber",
+        "CustomerIdentifier",
+        "CarruerType" ,
+        "CustomerID" ,
+        "Donation" ,
+        "Print" ,
+        "TaxType",
+        "CustomerName" ,
+        "CustomerAddr" ,
+        "CustomerPhone" ,
+        "CustomerEmail" ,
+        "ClearanceMark" ,
+        "CarruerNum" ,
+        "LoveCode" ,
+        "InvoiceRemark" ,
+        "DelayDay",
+        "InvoiceItemName",
+        "InvoiceItemCount",
+        "InvoiceItemWord",
+        "InvoiceItemPrice",
+        "InvoiceItemTaxType",
+        "InvType"
+    );
 
     // 付款方式延伸參數
     public $arPayMentExtend = array();
@@ -1454,20 +1454,20 @@ Abstract class ECPay_Verification
 */
 class ECPay_CVS extends ECPay_Verification
 {
-    public  $arPayMentExtend = array(
-                            'Desc_1'           =>'',
-                            'Desc_2'           =>'',
-                            'Desc_3'           =>'',
-                            'Desc_4'           =>'',
-                            'PaymentInfoURL'   =>'',
-                            'ClientRedirectURL'=>'',
-                            'StoreExpireDate'  =>''
-                        );
+    public $arPayMentExtend = array(
+        'Desc_1'           =>'',
+        'Desc_2'           =>'',
+        'Desc_3'           =>'',
+        'Desc_4'           =>'',
+        'PaymentInfoURL'   =>'',
+        'ClientRedirectURL'=>'',
+        'StoreExpireDate'  =>''
+    );
 
     // 過濾多餘參數
-    function filter_string($arExtend = array(),$InvoiceMark = ''){
+    function filter_string($arExtend = array(),$InvoiceMark = '') {
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
-        return $arExtend ;
+        return $arExtend;
     }
 }
 
@@ -1476,20 +1476,20 @@ class ECPay_CVS extends ECPay_Verification
 */
 class ECPay_BARCODE extends ECPay_Verification
 {
-    public  $arPayMentExtend = array(
-                            'Desc_1'           =>'',
-                            'Desc_2'           =>'',
-                            'Desc_3'           =>'',
-                            'Desc_4'           =>'',
-                            'PaymentInfoURL'   =>'',
-                            'ClientRedirectURL'=>'',
-                            'StoreExpireDate'  =>''
-                        );
+    public $arPayMentExtend = array(
+        'Desc_1'           =>'',
+        'Desc_2'           =>'',
+        'Desc_3'           =>'',
+        'Desc_4'           =>'',
+        'PaymentInfoURL'   =>'',
+        'ClientRedirectURL'=>'',
+        'StoreExpireDate'  =>''
+    );
 
     //過濾多餘參數
-    function filter_string($arExtend = array(),$InvoiceMark = ''){
+    function filter_string($arExtend = array(),$InvoiceMark = '') {
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
-        return $arExtend ;
+        return $arExtend;
     }
 }
 
@@ -1498,16 +1498,16 @@ class ECPay_BARCODE extends ECPay_Verification
 */
 class ECPay_ATM extends ECPay_Verification
 {
-    public  $arPayMentExtend = array(
-                            'ExpireDate'       => 3,
-                            'PaymentInfoURL'   => '',
-                            'ClientRedirectURL'=> '',
-                        );
+    public $arPayMentExtend = array(
+        'ExpireDate'       => 3,
+        'PaymentInfoURL'   => '',
+        'ClientRedirectURL'=> '',
+    );
 
     //過濾多餘參數
-    function filter_string($arExtend = array(),$InvoiceMark = ''){
+    function filter_string($arExtend = array(), $InvoiceMark = '') {
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
-        return $arExtend ;
+        return $arExtend;
     }
 }
 
@@ -1516,12 +1516,12 @@ class ECPay_ATM extends ECPay_Verification
 */
 class ECPay_WebATM extends ECPay_Verification
 {
-    public  $arPayMentExtend = array();
+    public $arPayMentExtend = array();
 
     //過濾多餘參數
-    function filter_string($arExtend = array(),$InvoiceMark = ''){
+    function filter_string($arExtend = array(), $InvoiceMark = '') {
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
-        return $arExtend ;
+        return $arExtend;
     }
 }
 
@@ -1531,23 +1531,23 @@ class ECPay_WebATM extends ECPay_Verification
 class ECPay_Credit extends ECPay_Verification
 {
     public $arPayMentExtend = array(
-                                    "CreditInstallment" => '',
-                                    "InstallmentAmount" => 0,
-                                    "Redeem"            => FALSE,
-                                    "UnionPay"          => FALSE,
-                                    "Language"          => '',
-                                    "BindingCard"       => '',
-                                    "MerchantMemberID"  => '',
-                                    "PeriodAmount"      => '',
-                                    "PeriodType"        => '',
-                                    "Frequency"         => '',
-                                    "ExecTimes"         => '',
-                                    "PeriodReturnURL"   => ''
-                                );
+        "CreditInstallment" => '',
+        "InstallmentAmount" => 0,
+        "Redeem"            => FALSE,
+        "UnionPay"          => FALSE,
+        "Language"          => '',
+        "BindingCard"       => '',
+        "MerchantMemberID"  => '',
+        "PeriodAmount"      => '',
+        "PeriodType"        => '',
+        "Frequency"         => '',
+        "ExecTimes"         => '',
+        "PeriodReturnURL"   => ''
+    );
 
-    function filter_string($arExtend = array(),$InvoiceMark = ''){
+    function filter_string($arExtend = array(), $InvoiceMark = '') {
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
-        return $arExtend ;
+        return $arExtend;
     }
 }
 
@@ -1556,10 +1556,10 @@ class ECPay_Credit extends ECPay_Verification
 */
 class ECPay_ALL extends ECPay_Verification
 {
-    public  $arPayMentExtend = array();
+    public $arPayMentExtend = array();
 
-    function filter_string($arExtend = array(),$InvoiceMark = ''){
-        return $arExtend ;
+    function filter_string($arExtend = array(), $InvoiceMark = '') {
+        return $arExtend;
     }
 }
 
@@ -1572,9 +1572,9 @@ class ECPay_GooglePay extends ECPay_Verification
 {
     public $arPayMentExtend = array();
 
-    function filter_string($arExtend = array(), $InvoiceMark = ''){
+    function filter_string($arExtend = array(), $InvoiceMark = '') {
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
-        return $arExtend ;
+        return $arExtend;
     }
 }
 
@@ -1584,20 +1584,18 @@ class ECPay_GooglePay extends ECPay_Verification
 if(!class_exists('ECPay_CheckMacValue', false))
 {
 
-    class ECPay_CheckMacValue{
+    class ECPay_CheckMacValue {
 
-        public static function generate($arParameters = array(),$HashKey = '' ,$HashIV = '',$encType = 0){
+        public static function generate($arParameters = array(), $HashKey = '' , $HashIV = '', $encType = 0) {
             $sMacValue = '' ;
 
-            if(isset($arParameters))
-            {
+            if (isset($arParameters)) {
                 unset($arParameters['CheckMacValue']);
                 uksort($arParameters, array('ECPay_CheckMacValue','merchantSort'));
 
                 // 組合字串
                 $sMacValue = 'HashKey=' . $HashKey ;
-                foreach($arParameters as $key => $value)
-                {
+                foreach($arParameters as $key => $value) {
                     $sMacValue .= '&' . $key . '=' . $value ;
                 }
 
@@ -1611,7 +1609,7 @@ if(!class_exists('ECPay_CheckMacValue', false))
                     case ECPay_EncryptType::ENC_SHA256:
                         // SHA256 編碼
                         $sMacValue = hash('sha256', $sMacValue);
-                    break;
+                        break;
 
                     case ECPay_EncryptType::ENC_MD5:
                     default:
@@ -1619,10 +1617,10 @@ if(!class_exists('ECPay_CheckMacValue', false))
                         $sMacValue = md5($sMacValue);
                 }
 
-                    $sMacValue = strtoupper($sMacValue);
+                $sMacValue = strtoupper($sMacValue);
             }
 
-            return $sMacValue ;
+            return $sMacValue;
         }
 
         /**

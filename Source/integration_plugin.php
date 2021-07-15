@@ -59,7 +59,7 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
             add_action( 'admin_init', array( $this, 'check_environment' ) );
             add_action( 'admin_notices', array( $this, 'admin_notices' ), 15 );
             add_action( 'plugins_loaded', array( $this, 'init' ) );
-            add_action('wp_footer', array( $this, 'ecpay_integration_plugin_init_payment_method' ) );
+            add_action( 'wp_footer', array( $this, 'ecpay_integration_plugin_init_payment_method' ) );
         }
 
         /**

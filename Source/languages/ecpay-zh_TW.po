@@ -86,13 +86,13 @@ msgid "Credit"
 msgstr "信用卡(一次付清)"
 
 msgid "Credit(3 Installments)"
-msgstr "信用卡(3期)"
+msgstr "信用卡(3期0利率)"
 
 msgid "Credit(6 Installments)"
-msgstr "信用卡(6期)"
+msgstr "信用卡(6期0利率)"
 
 msgid "Credit(12 Installments)"
-msgstr "信用卡(12期)"
+msgstr "信用卡(12期0利率)"
 
 msgid "Credit(18 Installments)"
 msgstr "信用卡(18期)"
