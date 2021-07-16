@@ -80,6 +80,7 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
 
         # 訂單明細頁
         add_action('woocommerce_admin_order_data_after_order_details', array($this, 'action_woocommerce_admin_order_status_cancel'));
+
     }
 
     /**
@@ -150,26 +151,37 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     function get_payment_options()
     {
-        $hasLargeAmountProduct = false;
-        if (WC()->cart !== null) {
-            foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-                $_product = apply_filters('woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key);
-                if ($_product->get_price() * $cart_item['quantity'] > 1000) {
-                    $hasLargeAmountProduct = true;
+        $setupOptions = array_filter((array) get_option($this->id . '_payment_options'));
+
+        if ( WC()->cart == null ) {
+            $this->payment_options = $setupOptions;
+            return;
+        }
+
+        $use_all = false;
+        if ( count(WC()->cart->get_cart()) > 5 ) {
+            $use_all = false;
+        } else {
+            foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+                $product = apply_filters('woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key);
+error_log("================ " . json_encode($product));
+                if ($product->get_type() === 'service') {
+                    $use_all = true;
                 }
             }
         }
+        $this->payment_options = array_filter(
+            $setupOptions, 
+            function ($str) use ($use_all) {
+                if ($use_all) return true;
 
-        $this->payment_options = array_filter( (array) get_option( $this->id . '_payment_options' ) );
-
-        if (!$hasLargeAmountProduct) {
-            foreach ($this->payment_options as $key => $value) {
-                if (strpos($value, "_") != false) {
-                    unset($this->payment_options[$key]);
+                if (strpos($str, "_") > 0) {
+                    return false;
                 }
+                return true;
             }
-        }
-
+        );
+error_log("================ " . json_encode($this->payment_options)." ==== ".$use_all);
     }
 
     /**
@@ -196,9 +208,8 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
         # Update order status
         $order = new WC_Order($order_id);
         $order->update_status('pending', $this->tran('Awaiting ECPay payment'));
-
         # Set the ECPay payment type to the order note
-        // $order->add_order_note($this->ecpay_choose_payment, ECPay_OrderNoteEmail::PAYMENT_METHOD);
+        $order->add_order_note($this->ecpay_choose_payment, ECPay_OrderNoteEmail::PAYMENT_METHOD);
 
         return array(
             'result' => 'success',
@@ -757,7 +768,7 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
         $data = array(
             'ecpay_test_mode'    => $this->ecpay_test_mode,
             'order_id'           => $order_id,
-            'notes'              => $notes[0],
+            'notes'              => count($notes) > 0 ? $notes[0] : "",
             'stage_order_prefix' => $stage_order_prefix,
             'is_expire'          => $this->helper->isExpire['no'],
         );
