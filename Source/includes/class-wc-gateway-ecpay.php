@@ -68,9 +68,6 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
         $this->ecpay_payment_methods = $ecpay_payment_methods;
         $this->get_payment_options();
 
-        $this->ecpay_apple_pay_ca_path = 'yes' === $this->get_option( 'apple_pay_domain_set', 'no' );
-        $this->ecpay_apple_pay_button  = $this->get_option( 'apple_pay_button', 'black' );
-
         # Register a action to save administrator settings
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_payment_options'));
@@ -466,8 +463,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
             'WebATM'    => $this->tran('WEB-ATM'),
             'ATM'       => $this->tran('ATM'),
             'CVS'       => $this->tran('CVS'),
-            'BARCODE'   => $this->tran('BARCODE'),
-            'ApplePay'  => $this->tran('ApplePay')
+            'BARCODE'   => $this->tran('BARCODE')
         );
 
         return $payment_desc[$payment_name];

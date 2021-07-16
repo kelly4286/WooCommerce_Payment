@@ -73,8 +73,7 @@ class ECPayPaymentHelper extends ECPayPaymentModuleHelper
         'WebATM'    ,
         'ATM'       ,
         'CVS'       ,
-        'BARCODE'   ,
-        'ApplePay'
+        'BARCODE'
     );
 
     /**

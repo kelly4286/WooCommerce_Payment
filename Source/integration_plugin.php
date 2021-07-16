@@ -159,7 +159,6 @@ if ( ! class_exists( 'WC_Ecpay_Payment' ) )
                 include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Integration.Shell.php' ); // 載入SDK
                 include_once( dirname( __FILE__ ) . '/includes/ECPay.Payment.Html.php' );
                 include_once( dirname( __FILE__ ) . '/includes/class-wc-gateway-ecpay.php' );
-                include_once( dirname( __FILE__ ) . '/includes/class-wc-ecpay-apple-pay.php' );
                 include_once( dirname( __FILE__ ) . '/includes/helpers/ECPayPaymentHelper.php' ); // 載入Helper
             }
 
