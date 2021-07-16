@@ -1064,7 +1064,8 @@ Abstract class ECPay_Verification
 
     //檢查共同參數
     public function check_string($arParameters = array()){
-
+error_log("  check_string ====================================" . $arParameters['ReturnURL']);
+error_log("  check_string OrderResultURL ====================================" . $arParameters['OrderResultURL']);
         $arErrors = array();
         if (strlen($arParameters['MerchantID']) == 0) {
             array_push($arErrors, 'MerchantID is required.');
