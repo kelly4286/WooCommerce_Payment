@@ -93,7 +93,8 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     public function payment_fields()
     {
-        if ( is_checkout() && ! is_wc_endpoint_url( 'order-pay' ) ) {
+error_log(" payment_fields ================ ");
+        if ( is_checkout() && is_wc_endpoint_url( 'order-pay' ) ) {
             // 產生 Html
             $data = array(
                 'payment_options' => $this->payment_options,
@@ -113,6 +114,7 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     function generate_ecpay_payment_methods_html()
     {
+error_log(" generate_ecpay_payment_methods_html ================ ");
         ob_start();
 
         // 產生 Html
@@ -132,6 +134,7 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     function process_admin_payment_options()
     {
+error_log(" process_admin_payment_options ================ ");
         $options = array();
         if (isset($this->ecpay_payment_methods) === true) {
             foreach ($this->ecpay_payment_methods as $key => $value) {
@@ -148,20 +151,40 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     function get_payment_options()
     {
+        global $wp;
         $setupOptions = array_filter((array) get_option($this->id . '_payment_options'));
 
-        if ( WC()->cart == null ) {
-            $this->payment_options = $setupOptions;
+        $order_items = null;
+        if (isset($wp->query_vars['order-pay']) && absint($wp->query_vars['order-pay']) > 0) {
+            // 在獨立的付款頁面進行結帳
+            $order_id = absint($wp->query_vars['order-pay']);
+            $order = wc_get_order($order_id);
+
+            if ($order != null) {
+                $items = $order->get_items();
+                foreach ($items as $order_item) {
+                    $product_id = $order_item->get_product_id();
+                    $order_items[] = $product_id;
+                }
+            }
+        } elseif (WC()->cart != null) {
+            // 在一般付款頁面結帳
+            foreach (WC()->cart->get_cart() as $key => $value) {
+                $order_items[] = $value['product_id'];
+            }
+        } else {
+            // Admin 設定頁面查詢目前有哪些選項打開
+            $this->payment_options = $setupOptions; 
             return;
         }
 
         $use_all = false;
-        if ( count(WC()->cart->get_cart()) > 5 ) {
+        if (count($order_items) > 5) {
             $use_all = false;
         } else {
-            foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-                $product = apply_filters('woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key);
-error_log("================ " . json_encode($product));
+            foreach ($order_items as $product_id) {
+                // 只有 product type = service 才能使用分期付款
+                $product = wc_get_product($product_id);
                 if ($product->get_type() === 'service') {
                     $use_all = true;
                 }
@@ -172,13 +195,13 @@ error_log("================ " . json_encode($product));
             function ($str) use ($use_all) {
                 if ($use_all) return true;
 
-                if (strpos($str, "_") > 0) {
+                // 將分期付款排除
+                if (str_contains($str, "Credit_")) {
                     return false;
                 }
                 return true;
             }
         );
-error_log("================ " . json_encode($this->payment_options)." ==== ".$use_all);
     }
 
     /**
@@ -186,6 +209,8 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     public function validate_fields()
     {
+error_log(" validate_fields ================ ");
+
         $choose_payment = sanitize_text_field($_POST['ecpay_choose_payment']);
         $payment_desc = $this->get_payment_desc($choose_payment);
         if ($_POST['payment_method'] == $this->id && !empty($payment_desc)) {
@@ -202,6 +227,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     public function process_payment($order_id)
     {
+error_log(" process_payment ================ ");
         # Update order status
         $order = new WC_Order($order_id);
         $order->update_status('pending', $this->tran('Awaiting ECPay payment'));
@@ -216,6 +242,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
 
     public function order_received($order_id)
     {
+error_log(" order_received ================ ");
 		$intHasChanged = get_post_meta($order_id, '_'.$this->id.'_order-status_has_changed', true);
 		if ($intHasChanged) return;
 
@@ -234,6 +261,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     public function receive_response($order_id)
     {
+error_log(" receive_response ================ ");
         $result_msg = '1|OK';
         $order = null;
         try {
@@ -527,6 +555,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     public function confirm_order($order, $comments, $ecpay_feedback)
     {
+error_log(" confirm_order ================ ");
         $order->add_order_note($comments, ECPay_OrderNoteEmail::CONFIRM_ORDER);
 
         $order->payment_complete();
@@ -548,6 +577,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     public function thankyou_page( $order_id )
     {
+error_log(" thankyou_page ================ ");
 
         $this->payment_details( $order_id );
 
@@ -560,6 +590,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     private function payment_details( $order_id = '' )
     {
+error_log(" payment_details ================ ");
         $account_html = '';
         $has_details = false ;
         $a_has_details = array();
@@ -705,6 +736,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     private function auto_invoice($order_id, $ecpay_feedback)
     {
+error_log(" auto_invoice ================ ");
         // call invoice model
         $invoice_active_ecpay   = 0 ;
 
@@ -751,6 +783,7 @@ error_log("================ " . json_encode($this->payment_options)." ==== ".$us
      */
     public function ecpay_redirect_payment_center($order_id)
     {
+error_log(" ecpay_redirect_payment_center ================ ");
         # Clean the cart
         global $woocommerce;
         $woocommerce->cart->empty_cart();
