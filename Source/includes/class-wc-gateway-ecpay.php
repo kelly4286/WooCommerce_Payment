@@ -94,7 +94,7 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
     public function payment_fields()
     {
 error_log(" payment_fields ================ ");
-        if ( is_checkout() && is_wc_endpoint_url( 'order-pay' ) ) {
+        if ( is_checkout() || is_wc_endpoint_url( 'order-pay' ) ) {
             // 產生 Html
             $data = array(
                 'payment_options' => $this->payment_options,
@@ -172,7 +172,9 @@ error_log(" process_admin_payment_options ================ ");
             foreach (WC()->cart->get_cart() as $key => $value) {
                 $order_items[] = $value['product_id'];
             }
-        } else {
+        } 
+        
+        if ($order_items == null) {
             // Admin 設定頁面查詢目前有哪些選項打開
             $this->payment_options = $setupOptions; 
             return;
@@ -774,6 +776,24 @@ error_log(" auto_invoice ================ ");
     {
         wc_add_notice(esc_html($error_message), 'error');
     }
+    
+    /**
+     * 組出給綠界 API 的商品項目敘述
+     */
+    public function get_items_str($order) 
+    {
+		$str = false;
+
+		foreach ($order->get_items() as $key => $value) {
+			if (!$str) {
+				$str = '';
+			} else {
+				$str .= '#';
+			}
+			$str .= $value['name'].' x '.$value['qty'].' '.$value['line_total'];
+		}
+	    return $str;
+	}
 
     /**
      * 轉導綠界付款頁
@@ -818,7 +838,7 @@ error_log(" ecpay_redirect_payment_center ================ ");
                 'clientBackUrl'     => $this->get_return_url($order),
                 'orderId'           => $order->get_id(),
                 'total'             => $order->get_total(),
-                'itemName'          => $this->tran('A Package Of Online Goods'),
+                'itemName'          => $this->get_items_str($order),
                 'cartName'          => 'woocommerce',
                 'currency'          => $order->get_currency(),
                 'needExtraPaidInfo' => 'Y',
