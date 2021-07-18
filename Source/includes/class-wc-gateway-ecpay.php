@@ -93,7 +93,6 @@ class WC_Gateway_Ecpay extends WC_Gateway_Ecpay_Base
      */
     public function payment_fields()
     {
-error_log(" payment_fields ================ ");
         if ( is_checkout() || is_wc_endpoint_url( 'order-pay' ) ) {
             // 產生 Html
             $data = array(
@@ -114,7 +113,6 @@ error_log(" payment_fields ================ ");
      */
     function generate_ecpay_payment_methods_html()
     {
-error_log(" generate_ecpay_payment_methods_html ================ ");
         ob_start();
 
         // 產生 Html
@@ -134,7 +132,6 @@ error_log(" generate_ecpay_payment_methods_html ================ ");
      */
     function process_admin_payment_options()
     {
-error_log(" process_admin_payment_options ================ ");
         $options = array();
         if (isset($this->ecpay_payment_methods) === true) {
             foreach ($this->ecpay_payment_methods as $key => $value) {
@@ -211,7 +208,6 @@ error_log(" process_admin_payment_options ================ ");
      */
     public function validate_fields()
     {
-error_log(" validate_fields ================ ");
 
         $choose_payment = sanitize_text_field($_POST['ecpay_choose_payment']);
         $payment_desc = $this->get_payment_desc($choose_payment);
@@ -229,7 +225,6 @@ error_log(" validate_fields ================ ");
      */
     public function process_payment($order_id)
     {
-error_log(" process_payment ================ ");
         # Update order status
         $order = new WC_Order($order_id);
         $order->update_status('pending', $this->tran('Awaiting ECPay payment'));
@@ -244,7 +239,6 @@ error_log(" process_payment ================ ");
 
     public function order_received($order_id)
     {
-error_log(" order_received ================ ");
 		$intHasChanged = get_post_meta($order_id, '_'.$this->id.'_order-status_has_changed', true);
 		if ($intHasChanged) return;
 
@@ -263,7 +257,6 @@ error_log(" order_received ================ ");
      */
     public function receive_response($order_id)
     {
-error_log(" receive_response ================ ");
         $result_msg = '1|OK';
         $order = null;
         try {
@@ -557,7 +550,6 @@ error_log(" receive_response ================ ");
      */
     public function confirm_order($order, $comments, $ecpay_feedback)
     {
-error_log(" confirm_order ================ ");
         $order->add_order_note($comments, ECPay_OrderNoteEmail::CONFIRM_ORDER);
 
         $order->payment_complete();
@@ -579,7 +571,6 @@ error_log(" confirm_order ================ ");
      */
     public function thankyou_page( $order_id )
     {
-error_log(" thankyou_page ================ ");
 
         $this->payment_details( $order_id );
 
@@ -592,7 +583,6 @@ error_log(" thankyou_page ================ ");
      */
     private function payment_details( $order_id = '' )
     {
-error_log(" payment_details ================ ");
         $account_html = '';
         $has_details = false ;
         $a_has_details = array();
@@ -738,7 +728,6 @@ error_log(" payment_details ================ ");
      */
     private function auto_invoice($order_id, $ecpay_feedback)
     {
-error_log(" auto_invoice ================ ");
         // call invoice model
         $invoice_active_ecpay   = 0 ;
 
@@ -803,7 +792,6 @@ error_log(" auto_invoice ================ ");
      */
     public function ecpay_redirect_payment_center($order_id)
     {
-error_log(" ecpay_redirect_payment_center ================ ");
         # Clean the cart
         global $woocommerce;
         $woocommerce->cart->empty_cart();

@@ -21,8 +21,8 @@ class WC_Gateway_Ecpay_Base extends WC_Payment_Gateway
         // 付款回應處理
         add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
 
-        // "返回商店"感謝頁
-        add_action('woocommerce_thankyou_ecpay', array($this, 'thankyou_page'));
+        // // "返回商店"感謝頁
+        // add_action('woocommerce_thankyou_ecpay', array($this, 'thankyou_page'));
     }
 
     /**
