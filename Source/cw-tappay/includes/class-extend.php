@@ -104,14 +104,14 @@ class Extend
 
     public static function RefundAmount($strAmount, $stdOrder, $stdClass)
     {
-        $strPaymentMethod=$stdOrder->get_payment_method();
+        $strPaymentMethod = $stdOrder->get_payment_method();
 
-        if ($strPaymentMethod==Handler::ID) {
+        if ($strPaymentMethod == Handler::ID) {
 
             /*
              * 直接改變訂單狀態的自動退款，$_POST['refund_amount'] 為空，但 $_POST['refunded_amount'] 有正確的退款金額
              */
-            if (isset($_POST['refund_amount'])&&(int)$_POST['refund_amount']>0) { // 訂單頁按下部分退款按鈕
+            if (isset($_POST['refund_amount']) && (int)$_POST['refund_amount'] > 0) { // 訂單頁按下部分退款按鈕
                 $strAmount=$_POST['refund_amount'];
             }
         }
@@ -121,7 +121,7 @@ class Extend
 
     public static function PaymentCompleteStatus($arrStatus)
     {
-        $arrRefund=array(
+        $arrRefund = array(
             'wc-cancelled',
             'wc-refunded',
             'wc-failed',
@@ -131,12 +131,13 @@ class Extend
             unset($arrStatus[$value]);
         }
 
-        $arrNewStatus=$arrStatus;
-        $arrStatus=array();
+        $arrNewStatus = $arrStatus;
+        $arrStatus = array();
 
-        foreach ($arrNewStatus as $key=>$value) { // remove wc-
-            $strKey=preg_replace('@^wc-@', '', $key);
-            $arrStatus[$strKey]=$value;
+		// remove wc-
+        foreach ($arrNewStatus as $key => $value) { 
+            $strKey = preg_replace('@^wc-@', '', $key);
+            $arrStatus[$strKey] = $value;
         }
 
         return $arrStatus;
@@ -144,9 +145,10 @@ class Extend
 
     public static function RefundStatus($arrStatus)
     {
-        $arrNoRefund=array(
+        $arrNoRefund = array(
             'wc-processing',
-            'wc-completed');
+            'wc-completed'
+		);
         foreach ($arrNoRefund as $value) {
             unset($arrStatus[$value]);
         }
@@ -175,38 +177,38 @@ class Extend
          *	[security] => 64xxxxxxeb // nonce
          * )
          */
-        if (array_key_exists('action', $_POST)&&$_POST['action']=='woocommerce_refund_line_items') {
+        if (array_key_exists('action', $_POST) && $_POST['action'] == 'woocommerce_refund_line_items') {
             return;
         }
 
-        $strPaymentMethod=$stdOrder->get_payment_method();
-        if ($strPaymentMethod!=Handler::ID) {
+        $strPaymentMethod = $stdOrder->get_payment_method();
+        if ($strPaymentMethod != Handler::ID) {
             return;
         }
 
-        $stdClass=new WC_Gateway_TapPay;
+        $stdClass = new WC_Gateway_TapPay;
 
         if (in_array('wc-'.$strStatusTo, $stdClass->auto_refund)) {
-            $intRestoreStock=true;
-            $intOrderTotal=$stdOrder->get_total();
+            $intRestoreStock = true;
+            $intOrderTotal = $stdOrder->get_total();
 
-            if ((int)$intOrderTotal>0) {
-                $strResult=Extend::CancelAuthorized($intOrderID, $stdOrder, $stdClass);
+            if ((int)$intOrderTotal > 0) {
+                $strResult = Extend::CancelAuthorized($intOrderID, $stdOrder, $stdClass);
 
                 /*
                  * 2020.12.14
                  * 有訂單編號的退刷不一定要恢復庫存
                  * 例如 free trial、zero amount
                  */
-                $stdResult=Extend::DecodeJSON($strResult);
-                if ($stdResult->status!='0') {
-                    $intRestoreStock=false;
+                $stdResult = Extend::DecodeJSON($strResult);
+                if ($stdResult->status != '0') {
+                    $intRestoreStock = false;
                 }
             }
 
-            $strStockReduced=get_post_meta($intOrderID, '_order_stock_reduced', true); // 檢查資料庫 post_meta 的值，yes|no
-            if ('no'===$strStockReduced) {
-                $intRestoreStock=false;
+            $strStockReduced = get_post_meta($intOrderID, '_order_stock_reduced', true); // 檢查資料庫 post_meta 的值，yes|no
+            if ('no' === $strStockReduced) {
+                $intRestoreStock = false;
             }
 
             if ($intRestoreStock) {
@@ -217,13 +219,14 @@ class Extend
 
     public static function CancelAuthorized($intOrderID, $stdOrder, $stdClass)
     {
-        $strPostMeta=get_post_meta($intOrderID, '_'.Handler::ID.'-return', true);
+        $strPostMeta = get_post_meta($intOrderID, '_'.Handler::ID.'-return', true);
         if (!$strPostMeta) {
             return;
-        } /*===必須要有 return 資料 ( 刷卡成功 ) 才能啟用退刷===*/
+        } 
+		/*===必須要有 return 資料 ( 刷卡成功 ) 才能啟用退刷===*/
 
-        $stdPostMeta	=Extend::DecodeJSON($strPostMeta);
-        $strResult		=Admin::CancelAuthorized($intOrderID, $stdClass, $stdPostMeta, $stdOrder);
+        $stdPostMeta = Extend::DecodeJSON($strPostMeta);
+        $strResult = Admin::CancelAuthorized($intOrderID, $stdClass, $stdPostMeta, $stdOrder);
 
         do_action(Handler::ID.'_after-refund', $intOrderID, $stdClass);
 
@@ -231,32 +234,33 @@ class Extend
     }
 
     public static function MaybeZeroAmount($stdOrder, $stdResult, $stdClass)
-    { // 2020.12.13 訂單可能因為優惠券全額抵用，授權後要執行退款
-        $intOrderID=Get::OrderID($stdOrder);
+    { 
+		// 2020.12.13 訂單可能因為優惠券全額抵用，授權後要執行退款
+        $intOrderID = Get::OrderID($stdOrder);
         if (!$intOrderID) {
             return;
         }
 
-        $intZeroAmount=get_post_meta($intOrderID, '_'.Handler::ID.'-zero-amount', true);
+        $intZeroAmount = get_post_meta($intOrderID, '_'.Handler::ID.'-zero-amount', true);
         if (!$intZeroAmount) {
             return;
         }
 
-        $strResult=Extend::CancelAuthorized($intOrderID, $stdOrder, $stdClass);
-        $stdResult=Extend::DecodeJSON($strResult);
-        if ($stdResult->status=='0') {
+        $strResult = Extend::CancelAuthorized($intOrderID, $stdOrder, $stdClass);
+        $stdResult = Extend::DecodeJSON($strResult);
+        if ($stdResult->status == '0') {
             delete_post_meta($intOrderID, '_'.Handler::ID.'-zero-amount', 1); // 1: 刷卡金額 1 元
         }
     }
 
     public static function RefundZeroAmount($strAmount, $stdOrder, $stdClass)
     { // 2020.12.13 訂單可能因為優惠券全額抵用，授權後要執行退款
-        $intOrderID=Get::OrderID($stdOrder);
+        $intOrderID = Get::OrderID($stdOrder);
         if (!$intOrderID) {
             return;
         }
 
-        $intZeroAmount=get_post_meta($intOrderID, '_'.Handler::ID.'-zero-amount', true);
+        $intZeroAmount = get_post_meta($intOrderID, '_'.Handler::ID.'-zero-amount', true);
         if ($intZeroAmount) {
             $strAmount=$intZeroAmount;
         }
@@ -266,13 +270,13 @@ class Extend
 
     public static function CheckData($intOrderID, $arrPostedData, $stdOrder)
     {
-        if ($arrPostedData['payment_method']!=Handler::ID) {
+        if ($arrPostedData['payment_method'] != Handler::ID) {
             return;
         }
 
         if (isset($_POST['wc-'.Handler::ID.'-payment-token'])) {
-            if ($_POST['wc-'.Handler::ID.'-payment-token']=='new') {
-                if (!isset($_POST[Handler::ID.'_result'])||strlen(trim($_POST[Handler::ID.'_result']))===0) {
+            if ($_POST['wc-'.Handler::ID.'-payment-token'] == 'new') {
+                if (!isset($_POST[Handler::ID.'_result']) || strlen(trim($_POST[Handler::ID.'_result'])) === 0) {
                     Get::ErrorMessage(1); // Result 資料有誤
                     return;
                 }
@@ -294,16 +298,16 @@ class Extend
 
     public static function ReadyToPay($intOrderID, $arrPostedData, $stdOrder)
     {
-        if ($arrPostedData['payment_method']!=Handler::ID) {
+        if ($arrPostedData['payment_method'] != Handler::ID) {
             return false;
         }
 
         if (isset($_POST['wc-'.Handler::ID.'-payment-token'])) {
-            $stdClass=new WC_Gateway_TapPay;
+            $stdClass = new WC_Gateway_TapPay;
 
-            $stdClass=apply_filters(Handler::ID.'_ready-to-pay', $stdClass, $intOrderID, $arrPostedData, $stdOrder);
+            $stdClass = apply_filters(Handler::ID.'_ready-to-pay', $stdClass, $intOrderID, $arrPostedData, $stdOrder);
 
-            if ($_POST['wc-'.Handler::ID.'-payment-token']=='new') {
+            if ($_POST['wc-'.Handler::ID.'-payment-token'] == 'new') {
                 return CheckoutProcess::PayByPrime($intOrderID, $stdOrder, $stdClass);
             } else {
                 return CheckoutProcess::PayByToken($intOrderID, $stdOrder, $stdClass, $_POST['wc-'.Handler::ID.'-payment-token']);
@@ -321,7 +325,7 @@ class Extend
 
     public static function CheckMobileNumber($strMobileNumber, $stdOrder)
     {
-        $strMobileNumber=CheckoutProcess::CheckMobileNumber($strMobileNumber);
+        $strMobileNumber = CheckoutProcess::CheckMobileNumber($strMobileNumber);
         return $strMobileNumber;
     }
 
@@ -330,7 +334,7 @@ class Extend
      */
     public static function CardHolderInfo()
     {
-        $intCardHolder=apply_filters(Handler::ID.'_card-holder-info', is_wc_endpoint_url('add-payment-method'));
+        $intCardHolder = apply_filters(Handler::ID.'_card-holder-info', is_wc_endpoint_url('add-payment-method'));
         if ($intCardHolder) {
             echo Get::Template('card-holder-info', 'page');
         }

@@ -19,23 +19,23 @@ class Get
 
     public static function ClassName($stdClass)
     {
-        $stdReflect=new \ReflectionClass($stdClass);
+        $stdReflect = new \ReflectionClass($stdClass);
         return $stdReflect->getShortName();
     }
 
     public static function ParentOrder($order)
     {
-        $stdOrder			=is_numeric($order)?wc_get_order($order):$order;
-        $strOrderType	=Subscription::OrderType($stdOrder);
+        $stdOrder = is_numeric($order)?wc_get_order($order):$order;
+        $strOrderType = Subscription::OrderType($stdOrder);
 
-        if ($strOrderType=='parent') {
+        if ($strOrderType == 'parent') {
             return $stdOrder;
-        } elseif ($strOrderType=='subscription') {
-            $stdSubscription=wcs_get_subscription($stdOrder);
+        } elseif ($strOrderType == 'subscription') {
+            $stdSubscription = wcs_get_subscription($stdOrder);
             return $stdSubscription->get_parent();
         } else {
-            $arrSubscription=wcs_get_subscriptions_for_renewal_order($stdOrder);
-            if (count($arrSubscription)===0) {
+            $arrSubscription = wcs_get_subscriptions_for_renewal_order($stdOrder);
+            if (count($arrSubscription) === 0) {
                 return false;
             } else {
                 return current($arrSubscription);
@@ -47,26 +47,26 @@ class Get
 
     public static function ParentOrderToken($order)
     {
-        $stdToken=false;
-        $stdOrder=is_numeric($order)?wc_get_order($order):$order;
+        $stdToken = false;
+        $stdOrder = is_numeric($order) ? wc_get_order($order) : $order;
 
         if ($stdOrder) {
-            $intOrderID=Get::OrderID($stdOrder);
+            $intOrderID = Get::OrderID($stdOrder);
 
-            $strResponse=get_post_meta($intOrderID, '_'.Handler::ID.'-return', true);
+            $strResponse = get_post_meta($intOrderID, '_'.Handler::ID.'-return', true);
             if (!$strResponse) {
                 return false;
             }
 
-            $stdResponse=Extend::DecodeJSON($strResponse);
+            $stdResponse = Extend::DecodeJSON($strResponse);
 
-            $strToken='';
+            $strToken = '';
             if (property_exists($stdResponse->card_secret, 'card_key')) {
-                $strToken=$stdResponse->card_secret->card_key;
+                $strToken = $stdResponse->card_secret->card_key;
             }
-            $strToken.=':::'.$stdResponse->card_secret->card_token;
+            $strToken .= ':::'.$stdResponse->card_secret->card_token;
 
-            $stdToken=Get::TokenByString($strToken, $stdOrder->get_customer_id());
+            $stdToken = Get::TokenByString($strToken, $stdOrder->get_customer_id());
         }
 
         return $stdToken;

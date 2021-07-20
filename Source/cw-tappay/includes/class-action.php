@@ -74,79 +74,78 @@ class Action
          * - $arrCardHolderIndex
          * - $arrCardHolder
          */
-        $arrVariables=Get::PaymentVariables($stdClass);
+        $arrVariables = Get::PaymentVariables($stdClass);
         extract($arrVariables);
         if (!$strMerchantID) {
-            $intError=8;
+            $intError = 8;
         }
 
-        if ($intError===0) {
+        if ($intError === 0) {
             foreach ($arrCardHolderIndex as $key=>$value) {
                 switch ($key) {
                     case 'phone_number':
                         if (empty($arrCardHolder[$key])) {
-                            $arrCardHolder[$key]=Get::UserBillingPhone($intUserID);
+                            $arrCardHolder[$key] = Get::UserBillingPhone($intUserID);
                         }
                         break;
                     case 'name':
                         if (empty($arrCardHolder[$key])) {
-                            $arrCardHolder[$key]=Get::UserBillingName($intUserID);
+                            $arrCardHolder[$key] = Get::UserBillingName($intUserID);
                         }
                         break;
                     case 'email':
                         if (empty($arrCardHolder[$key])) {
-                            $arrCardHolder[$key]=Get::UserBillingEmail($intUserID);
+                            $arrCardHolder[$key] = Get::UserBillingEmail($intUserID);
                         }
                         break;
                 }
             }
 
-            $arrCardHolder=array(
-                'phone_number'	=>$arrCardHolder['phone_number'], // billing_phone
-                'name'					=>$arrCardHolder['name'], // 姓名
-                'email'					=>$arrCardHolder['email'],
-
-                'zip_code'			=>'', // 以下均為 optional
-                'address'				=>'',
-                'national_id'		=>'',
-                'member_id'			=>'',
+            $arrCardHolder = array(
+                'phone_number' => $arrCardHolder['phone_number'], // billing_phone
+                'name' => $arrCardHolder['name'], // 姓名
+                'email' => $arrCardHolder['email'],
+                'zip_code' => '', // 以下均為 optional
+                'address' => '',
+                'national_id' => '',
+                'member_id' => '',
             );
 
-            $arrPostData=array(
-                'prime'					=>$stdCardInfo->prime,
-                'partner_key'		=>$stdClass->partner_key,
-                'merchant_id'		=>$strMerchantID,
+            $arrPostData = array(
+                'prime' => $stdCardInfo->prime,
+                'partner_key' => $stdClass->partner_key,
+                'merchant_id' => $strMerchantID,
 
-                // 'merchant_group_id'=>'', // 不可與 merchant_id 同時使用 ( optional )
+                // 'merchant_group_id' => 不可與 merchant_id 同時使用 ( optional )
 
-                'currency'			=>'TWD',
-                'cardholder'		=>$arrCardHolder,
+                'currency' => 'TWD',
+                'cardholder' => $arrCardHolder,
 
-                //'cardholder_verify'=>'', // ( optional )
+                // 'cardholder_verify' => '', // ( optional )
             );
 
             /*===if 3D secure===*/
-            if ($stdClass->three_domain==='yes') {
-                $arrPostData['three_domain_secure']=true;
+            if ($stdClass->three_domain === 'yes') {
+                $arrPostData['three_domain_secure'] = true;
 
-                $arrPostData['result_url']=array(
-                    'frontend_redirect_url'	=>$strSiteURL.'/cwtpfw/3d-secure/checkout?order_id=0',
-                    'backend_notify_url'		=>$strSiteURL.'/cwtpfw/3d-secure/notify?order_id=0',
+                $arrPostData['result_url'] = array(
+                    'frontend_redirect_url'	=> $strSiteURL.'/cwtpfw/3d-secure/checkout?order_id=0',
+                    'backend_notify_url' => $strSiteURL.'/cwtpfw/3d-secure/notify?order_id=0',
                 );
             }
 
-            if ($stdClass->sandbox=='yes') {
-                $strURL='https://sandbox.tappaysdk.com/tpc/card/bind';
+            if ($stdClass->sandbox == 'yes') {
+                $strURL = 'https://sandbox.tappaysdk.com/tpc/card/bind';
             } else {
-                $strURL='https://prod.tappaysdk.com/tpc/card/bind';
+                $strURL = 'https://prod.tappaysdk.com/tpc/card/bind';
             }
 
-            $arrResult=Admin::RemotePost($strURL, $arrPostData, $stdClass);
+            $arrResult = Admin::RemotePost($strURL, $arrPostData, $stdClass);
 
-            if ($arrResult['error']===false) {
-                $stdResult=$arrResult['data'];
+            if ($arrResult['error'] === false) {
+                $stdResult = $arrResult['data'];
 
-                if ($stdResult->status!='0') {
+                if ($stdResult->status != '0') {
                     wc_add_notice($stdResult->msg, 'error');
                     return;
                 } else {
@@ -155,14 +154,14 @@ class Action
 
                 do_action(Handler::ID.'_after-add-card', $intUserID, $stdResult, $stdClass);
 
-                $stdResult->card_secret=''; // 返回 json 時，移除 card_secret 內容 ( card_token, card_key )
+                $stdResult->card_secret = ''; // 返回 json 時，移除 card_secret 內容 ( card_token, card_key )
 
-                $strRedirectURL=apply_filters(Handler::ID.'_bind-card-redirect', wc_get_endpoint_url('payment-methods'), 'success', $arrResult);
+                $strRedirectURL = apply_filters(Handler::ID.'_bind-card-redirect', wc_get_endpoint_url('payment-methods'), 'success', $arrResult);
 
                 return array(
-                    'data'			=>$stdResult,
-                    'result'		=>'success',
-                    'redirect'	=>$strRedirectURL, // filter: cwtpfw_bind-card-redirect
+                    'data' => $stdResult,
+                    'result' => 'success',
+                    'redirect' => $strRedirectURL, // filter: cwtpfw_bind-card-redirect
                 );
             } else {
                 wc_add_notice($arrResult['message'], 'error');
@@ -173,15 +172,19 @@ class Action
                  * result: <empty string>|success|failure
                  * redirect: <empty string>|url
                  */
-                $strRedirectURL=apply_filters(Handler::ID.'_bind-card-redirect', wc_get_endpoint_url('payment-methods'), 'error', $arrResult); // v1.2 2020.10.24
-                return ['result'=>'', 'redirect'=>$strRedirectURL];
+                $strRedirectURL = apply_filters(Handler::ID.'_bind-card-redirect', wc_get_endpoint_url('payment-methods'), 'error', $arrResult); // v1.2 2020.10.24
+                
+				return [
+					'result' => '', 
+					'redirect' => $strRedirectURL
+				];
             }
         } else {
-            $strError=Get::ErrorMessage($intError, false);
+            $strError = Get::ErrorMessage($intError, false);
 
-            $arrResult=array( // v1.2 2020.10.24
-                'error'		=>$intError,
-                'message'	=>$strError,
+            $arrResult = array( // v1.2 2020.10.24
+                'error'	=> $intError,
+                'message' => $strError,
             );
 
             wc_add_notice($strError, 'error');
@@ -192,8 +195,11 @@ class Action
              * result: <empty string>|success|failure
              * redirect: <empty string>|url
              */
-            $strRedirectURL=apply_filters(Handler::ID.'_bind-card-redirect', wc_get_endpoint_url('payment-methods'), 'error', $arrResult); // v1.2 2020.10.24
-            return ['result'=>'', 'redirect'=>$strRedirectURL];
+            $strRedirectURL = apply_filters(Handler::ID.'_bind-card-redirect', wc_get_endpoint_url('payment-methods'), 'error', $arrResult); // v1.2 2020.10.24
+            return [
+				'result' => '', 
+				'redirect' => $strRedirectURL
+			];
         }
     }
 
@@ -206,48 +212,48 @@ class Action
         if (isset($wp->query_vars['delete-payment-method'])) {
             wc_nocache_headers();
 
-            $intTokenID	=absint($wp->query_vars['delete-payment-method']);
-            $stdToken		=\WC_Payment_Tokens::get($intTokenID);
+            $intTokenID = absint($wp->query_vars['delete-payment-method']);
+            $stdToken = \WC_Payment_Tokens::get($intTokenID);
 
             if (is_null($stdToken)
-                ||get_current_user_id()!==$stdToken->get_user_id()
-                ||!isset($_REQUEST['_wpnonce'])
-                ||false===wp_verify_nonce(wp_unslash($_REQUEST['_wpnonce']), 'delete-payment-method-'.$intTokenID)) {
+                || get_current_user_id() !== $stdToken->get_user_id()
+                || !isset($_REQUEST['_wpnonce'])
+                || false === wp_verify_nonce(wp_unslash($_REQUEST['_wpnonce']), 'delete-payment-method-'.$intTokenID)) {
             } else {
-                $strCardKey		='';
-                $strCardToken	='';
-                $arrData			=$stdToken->get_data();
+                $strCardKey		= '';
+                $strCardToken	= '';
+                $arrData		= $stdToken->get_data();
 
-                if ($arrData['gateway_id']!=Handler::ID) {
+                if ($arrData['gateway_id'] != Handler::ID) {
                     return;
                 } // 非 TapPay
 
                 preg_match('@^(.*?):::(.*?)$@', $arrData['token'], $match);
 
-                if (count($match)===0) {
-                    $strError='Card key|token 有誤';
+                if (count($match) === 0) {
+                    $strError = 'Card key|token 有誤';
                 } else {
-                    $strCardKey		=$match[1];
-                    $strCardToken	=$match[2];
+                    $strCardKey		= $match[1];
+                    $strCardToken	= $match[2];
                 }
 
-                if ($strError===false) {
-                    $stdClass=new WC_Gateway_TapPay();
+                if ($strError === false) {
+                    $stdClass = new WC_Gateway_TapPay();
 
-                    $strURL='https://prod.tappaysdk.com/tpc/card/bind';
-                    if ($stdClass->sandbox=='yes') {
-                        $strURL='https://sandbox.tappaysdk.com/tpc/card/bind';
+                    $strURL = 'https://prod.tappaysdk.com/tpc/card/bind';
+                    if ($stdClass->sandbox == 'yes') {
+                        $strURL = 'https://sandbox.tappaysdk.com/tpc/card/bind';
                     }
 
-                    $arrPostData=array(
-                        'partner_key'	=>$stdClass->partner_key,
-                        'card_key'		=>$stdClass,
-                        'card_token'	=>$strCardToken,
+                    $arrPostData = array(
+                        'partner_key'	=> $stdClass->partner_key,
+                        'card_key'		=> $stdClass,
+                        'card_token'	=> $strCardToken,
                     );
 
-                    $arrResult=Admin::RemotePost($strURL, $arrPostData, $stdClass);
+                    $arrResult = Admin::RemotePost($strURL, $arrPostData, $stdClass);
 
-                    if ($arrResult['error']===false) {
+                    if ($arrResult['error'] === false) {
                     } else {
                         wc_add_notice($strError, 'error');
                         wp_safe_redirect(wc_get_account_endpoint_url('payment-methods'));
