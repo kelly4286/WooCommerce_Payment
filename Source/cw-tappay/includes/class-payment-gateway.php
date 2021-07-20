@@ -1,5 +1,5 @@
 <?php
-/*<cloudwp />*/
+
 namespace cloudwp\TapPay;
 
 class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
@@ -79,13 +79,13 @@ class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
 
     public function process_refund($intOrderID, $amount=null, $reason='')
     {
-        $order=wc_get_order($intOrderID);
-        $strResult=Extend::CancelAuthorized($intOrderID, $order, $this);
+        $order = wc_get_order($intOrderID);
+        $strResult = Extend::CancelAuthorized($intOrderID, $order, $this);
 
-        $stdResult=Extend::DecodeJSON($strResult);
+        $stdResult = Extend::DecodeJSON($strResult);
 
         if (isset($stdResult->status)) {
-            if ($stdResult->status=='0') {
+            if ($stdResult->status == '0') {
                 return true;
             } else {
                 return new \WP_Error('error', 'TapPay 退款發生錯誤'."\r\n".$stdResult->msg."\r\n".'status: '.$stdResult->status);
@@ -95,15 +95,16 @@ class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
 
     public function process_payment($order_id)
     {
-        $order=wc_get_order($order_id);
+        $order = wc_get_order($order_id);
 
-        //$strReturnURL=CheckoutProcess::PaymentComplete($order_id, $order, $this); // 更換到 ReturnURL 執行 ( 如果沒有開啟 3D 驗證 )
-        //$strReturnURL=$this->get_return_url($order);
-        $strReturnURL=CheckoutProcess::ReturnURL($order_id, $order, $this);
+        //$strReturnURL = CheckoutProcess::PaymentComplete($order_id, $order, $this); // 更換到 ReturnURL 執行 ( 如果沒有開啟 3D 驗證 )
+        //$strReturnURL = $this->get_return_url($order);
+        $strReturnURL = CheckoutProcess::ReturnURL($order_id, $order, $this);
 
         return array(
-            'result'		=>'success',
-            'redirect'	=>$strReturnURL);
+            'result' => 'success',
+            'redirect' => $strReturnURL
+		);
     }
 
     public function get_icon()

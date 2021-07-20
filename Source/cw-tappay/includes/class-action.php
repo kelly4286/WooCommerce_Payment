@@ -8,9 +8,7 @@ if (!defined('ABSPATH')) {
 
 class Action
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public static function CheckReturn($strResponse, $arrPostData, $stdOrder, $stdClass)
     {
@@ -216,9 +214,9 @@ class Action
             $stdToken = \WC_Payment_Tokens::get($intTokenID);
 
             if (is_null($stdToken)
-                || get_current_user_id() !== $stdToken->get_user_id()
-                || !isset($_REQUEST['_wpnonce'])
-                || false === wp_verify_nonce(wp_unslash($_REQUEST['_wpnonce']), 'delete-payment-method-'.$intTokenID)) {
+			|| get_current_user_id() !== $stdToken->get_user_id()
+			|| !isset($_REQUEST['_wpnonce'])
+			|| false === wp_verify_nonce(wp_unslash($_REQUEST['_wpnonce']), 'delete-payment-method-'.$intTokenID)) {
             } else {
                 $strCardKey		= '';
                 $strCardToken	= '';

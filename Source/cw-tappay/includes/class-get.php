@@ -184,7 +184,6 @@ class Get
             $stdClass->tokenization_script();
             $stdClass->saved_payment_methods();
         }
-error_log(" Get PaymentField ================================ " . $arrVariables);
 
         echo self::Template('payment-field', 'page', $arrVariables);
     }
@@ -224,8 +223,8 @@ error_log(" Get PaymentField ================================ " . $arrVariables)
     public static function Icon()
     {
         $icon = '';
-        $ext = version_compare(WC()->version, '2.6', '>=')?'.svg':'.png';
-        $style = version_compare(WC()->version, '2.6', '>=')?' style="margin-left: 0.3em"':'';
+        $ext = version_compare(WC()->version, '2.6', '>=') ? '.svg' : '.png';
+        $style = version_compare(WC()->version, '2.6', '>=') ? ' style="margin-left: 0.3em"' : '';
 
         $icon .= '<img src="'.\WC_HTTPS::force_https_url(WC()->plugin_url().'/assets/images/icons/credit-cards/visa'.$ext).'" alt="Visa" width="32"'.$style.' />';
         $icon .= '<img src="'.\WC_HTTPS::force_https_url(WC()->plugin_url().'/assets/images/icons/credit-cards/mastercard'.$ext).'" alt="Mastercard" width="32"'.$style.' />';
@@ -289,7 +288,7 @@ error_log(" Get PaymentField ================================ " . $arrVariables)
 
     public static function ErrorMessage($intError, $intThrowException=true)
     {
-        $arrErrorMessage=array(
+        $arrErrorMessage = array(
             '1' => 'Result 資料有誤',
             '2' => 'Decode 資料有誤',
             '3' => '缺少 input payment token 值',
@@ -614,7 +613,7 @@ error_log(" Get PaymentField ================================ " . $arrVariables)
 
     public static function UserBillingName($intUserID)
     {
-        $strBillingName = get_user_meta($intUserID, 'billing_last_name', true).get_user_meta($intUserID, 'billing_first_name', true);
+        $strBillingName = get_user_meta($intUserID, 'billing_last_name', true) . get_user_meta($intUserID, 'billing_first_name', true);
         return apply_filters(Handler::ID.'_billing-name', $strBillingName, $intUserID);
     }
 

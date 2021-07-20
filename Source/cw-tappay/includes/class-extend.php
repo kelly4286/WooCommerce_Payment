@@ -16,10 +16,12 @@ class Extend
         add_action('wp_ajax_'.Handler::ID.'_ManualRenew', __NAMESPACE__.'\\Subscription::ManualRenew');
         add_action('wp_ajax_'.Handler::ID.'_QueryStatus', __NAMESPACE__.'\\Admin::QueryStatus');
 
-        add_action('woocommerce_checkout_update_order_meta', function ($intOrderID, $arrData) {
-            /*===避免因為 post 出錯而重新生出訂單===*/
-            WC()->session->set('order_awaiting_payment', $intOrderID);
-        }, 1, 2);
+        add_action(
+			'woocommerce_checkout_update_order_meta', function ($intOrderID, $arrData) {
+				/*===避免因為 post 出錯而重新生出訂單===*/
+				WC()->session->set('order_awaiting_payment', $intOrderID);
+			}, 1, 2
+		);
 
         /*===Subscription===*/
         add_action('init', __NAMESPACE__.'\\Subscription::Init');
