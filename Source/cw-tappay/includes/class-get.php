@@ -1,10 +1,5 @@
 <?php
-/*<cloudwp />*/
 
-/*
- * get
- * 所有的 get
- */
 namespace cloudwp\TapPay;
 
 if (!defined('ABSPATH')) {
@@ -25,7 +20,7 @@ class Get
 
     public static function ParentOrder($order)
     {
-        $stdOrder = is_numeric($order)?wc_get_order($order):$order;
+	    $stdOrder = is_numeric($order) ? wc_get_order($order) : $order;
         $strOrderType = Subscription::OrderType($stdOrder);
 
         if ($strOrderType == 'parent') {

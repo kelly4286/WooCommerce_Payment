@@ -1,4 +1,7 @@
-<?php defined('ABSPATH')||exit();?>
+<?php 
+defined('ABSPATH') || exit();
+?>
+
 <div id="<?php echo $strHandlerID;?>_card-holder-info">
 
 	<fieldset>

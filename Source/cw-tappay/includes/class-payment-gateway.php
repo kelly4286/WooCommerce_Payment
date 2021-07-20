@@ -96,9 +96,6 @@ class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
     public function process_payment($order_id)
     {
         $order = wc_get_order($order_id);
-
-        //$strReturnURL = CheckoutProcess::PaymentComplete($order_id, $order, $this); // 更換到 ReturnURL 執行 ( 如果沒有開啟 3D 驗證 )
-        //$strReturnURL = $this->get_return_url($order);
         $strReturnURL = CheckoutProcess::ReturnURL($order_id, $order, $this);
 
         return array(

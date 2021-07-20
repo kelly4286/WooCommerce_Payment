@@ -302,7 +302,7 @@ class Basic
             header('Content-Type: text/html; charset=utf-8');
         }
 
-        $context=stream_context_create(
+        $context = stream_context_create(
             array(
                 'http' => array(
                     'method' => 'GET',

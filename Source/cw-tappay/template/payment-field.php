@@ -1,4 +1,7 @@
-<?php defined('ABSPATH')||exit();?>
+<?php
+defined('ABSPATH') || exit();
+?>
+
 <div id="<?php echo $strHandlerID;?>_payment-data">
 
 	<fieldset id="wc-<?php echo esc_attr($strHandlerID);?>-cc-form" class='wc-credit-card-form wc-payment-form'>
@@ -7,7 +10,7 @@
 		<div id="<?php echo $strHandlerID;?>_iframe"></div>
 		<!--Tappay iframe-->
 
-		<?php if($intShowSavedCard):?>
+		<?php if ($intShowSavedCard):?>
 		<!--Tappay save card-->
 		<label for="<?php echo $strHandlerID;?>_remember">
 			<input type="checkbox" id="<?php echo $strHandlerID;?>_remember" name="<?php echo $strHandlerID;?>_remember"<?php echo $strChecked;?> value="1" />
