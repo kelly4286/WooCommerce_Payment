@@ -25,11 +25,10 @@ defined('ABSPATH') || exit();
 						<polyline points="16.609,8.252 10.113,14.749 6.391,11.026 "/>
 						<circle cx="11.5" cy="11.5" r="10"/>
 					</svg>
-					<?php echo apply_filters($strHandlerID.'_save_payment_method_checkbox_text', $strSaveCardText);?>
+					<?php echo apply_filters($strHandlerID.'_save_payment_method_checkbox_text', $strSaveCardText); ?>
 				</span>
 			</label>
 			<!--Tappay save card-->
-
 		<?php else:
         /*
          * 2019.09.23
@@ -43,6 +42,15 @@ defined('ABSPATH') || exit();
 
 		<?php endif;?>
 
+		<label>
+			<div style="margin-top: 10px; margin-bottom: 10px">信用卡分期</div>
+			<select style="margin-bottom: 0em;" name="<?php echo $strHandlerID;?>_instalment" id="<?php echo $strHandlerID;?>_instalment">
+				<option value="0">一次付清</option>
+				<option value="3">3期0利率</option>
+				<option value="6">6期0利率</option>
+			</select>
+		</label>
+		
 	</fieldset>
 
 	<?php do_action($strHandlerID.'_after-payment-fields');?>

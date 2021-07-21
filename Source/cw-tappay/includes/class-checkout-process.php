@@ -25,6 +25,7 @@ class CheckoutProcess
                     $arrData = (array) $stdResult;
                     $arrData['orderid'] = apply_filters(Handler::ID.'_checkout_order_id', $intOrderID, $order);
                     $arrData['remember'] = isset($_POST[Handler::ID.'_remember']) ? $_POST[Handler::ID.'_remember'] : 0;
+                    $arrData['instalment'] = isset($_POST[Handler::ID.'_instalment']) ? $_POST[Handler::ID.'_instalment'] : 0;
 
                     update_post_meta($intOrderID, '_'.Handler::ID.'_post-data', $arrData);
                 } else {
@@ -40,7 +41,7 @@ class CheckoutProcess
 
     public static function PayByToken($intOrderID, $order, $stdClass, $intPaymentToken)
     {
-        $intUserID = $order->get_user_id();
+	    $intUserID = $order->get_user_id();
 
         $arrTokens = \WC_Payment_Tokens::get_customer_tokens($intUserID, Handler::ID);
 
@@ -82,9 +83,12 @@ class CheckoutProcess
             'amount'			=> $strAmount,
             'currency'			=> 'TWD',
             'order_number'		=> $strOrderNumber,
-            //'instalment'		=> 3, // 1.3 instalment
             'details'			=> $strDetails,
         );
+
+        if (isset($_POST[Handler::ID.'_instalment'])) {
+            $arrPostData['instalment'] = $_POST[Handler::ID.'_instalment'];
+        }
 
         if ($stdClass->three_domain === 'yes') { // 3D 驗證必要欄位
             $strSiteURL=Admin::SiteURL();
@@ -169,9 +173,12 @@ class CheckoutProcess
             'order_number'	=> $strOrderNumber,
             'details'		=> $strDetails,
             'cardholder'	=> $arrCardHolder,
-            //'instalment'	=> 3, // 1.3 instalment
             'remember'		=> $intRemember
 		);
+
+        if (isset($arrData['instalment']) && in_array($arrData['instalment'], [0, 3, 6])) {
+            $arrPostData['instalment'] = $arrData['instalment'];
+        }
 
         if ($stdClass->three_domain === 'yes') {
             $strSiteURL = Admin::SiteURL();
@@ -199,11 +206,6 @@ class CheckoutProcess
                 }
 
                 Admin::MaybeSaveCard($stdResponse, $intUserID, $intRemember);
-
-                if ($stdClass->three_domain === 'yes') { // 3D 驗證必要欄位
-                } else {
-                    //do_action(Handler::ID.'_after-success-payment', $order, $stdResponse); // 訂單可能是 free-trial，取得 token 後需退款
-                }
             }
         } else {
             if (strpos($stdResponse->msg, 'cURL error 28:') === 0 || strpos($stdResponse->msg, 'cURL Error:') === 0) {
@@ -228,7 +230,6 @@ class CheckoutProcess
      */
     public static function DoPayment($arrPostData, $strURL, $strPartnerKey, $stdClass, $stdOrder=false)
     {
-
         /*
          * v1.1.2 註記 2020.03.30
          * 先檢查 -return 避免造成重複扣款
@@ -344,7 +345,7 @@ class CheckoutProcess
 
     public static function CheckMobileNumber($strPhoneNumber)
     {
-        /*===開頭為加號 ( + ) 的 E.164 格式===*/
+	    /*===開頭為加號 ( + ) 的 E.164 格式===*/
         preg_match('@^\+?(886)?\s?0?(9\d{8})$@', $strPhoneNumber, $match);
 
         $strMobileNumber = false;
@@ -363,7 +364,7 @@ class CheckoutProcess
 
     public static function CheckAuthorized()
     {
-        if ($_POST['payment_method'] != Handler::ID) {
+	    if ($_POST['payment_method'] != Handler::ID) {
             return;
         }
         $stdResult = Basic::CheckDate();

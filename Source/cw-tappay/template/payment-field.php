@@ -25,5 +25,14 @@ defined('ABSPATH') || exit();
 		<!--Tappay save card-->
 		<?php endif;?>
 
+		<label>
+			<div style="margin-top: 10px; margin-bottom: 10px">信用卡分期</div>
+			<select style="margin-bottom: 0em;" name="<?php echo $strHandlerID;?>_instalment" id="<?php echo $strHandlerID;?>_instalment">
+				<option value="0">一次付清</option>
+				<option value="3">3期0利率</option>
+				<option value="6">6期0利率</option>
+			</select>
+		</label>
+
 	</fieldset>
 </div>
