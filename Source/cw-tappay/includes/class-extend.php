@@ -256,7 +256,8 @@ class Extend
     }
 
     public static function RefundZeroAmount($strAmount, $stdOrder, $stdClass)
-    { // 2020.12.13 訂單可能因為優惠券全額抵用，授權後要執行退款
+    { 
+		// 2020.12.13 訂單可能因為優惠券全額抵用，授權後要執行退款
         $intOrderID = Get::OrderID($stdOrder);
         if (!$intOrderID) {
             return;

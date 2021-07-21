@@ -76,11 +76,11 @@ var CWTPFW;
 
 			var stdData;
 
-			if (($('#payment_method_cwtpfw').is(':checked') && ($('#wc-cwtpfw-payment-token-new').length === 0 || $('#wc-cwtpfw-payment-token-new').is(':checked'))) || CWTPFW.AddCard === true) {
+			if (($('#payment_method_cwtpfw').is(':checked') && ($('#wc-cwtpfw-payment-token-new').length === 0 || $('#wc-cwtpfw-payment-token-new').is(':checked'))) 
+			|| CWTPFW.AddCard === true) {
 				stdData = CWTPFW.CollectData();
 				TPDirect.card.createToken(stdData.number, stdData.expirymonth, stdData.expiryyear, stdData.cvc, CWTPFW.Response);
 				return false;
-
 			}
 
 			return true;

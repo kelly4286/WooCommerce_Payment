@@ -20,7 +20,7 @@ class Get
 
     public static function ParentOrder($order)
     {
-	    $stdOrder = is_numeric($order) ? wc_get_order($order) : $order;
+        $stdOrder = is_numeric($order) ? wc_get_order($order) : $order;
         $strOrderType = Subscription::OrderType($stdOrder);
 
         if ($strOrderType == 'parent') {
@@ -124,7 +124,7 @@ class Get
 
     public static function TokenByString($strToken, $intUserID)
     {
-        global $wpdb;
+		global $wpdb;
 
         /*
          * 2020.06.05
@@ -146,7 +146,7 @@ class Get
 
     public static function PaymentField($stdClass)
     {
-        wp_enqueue_script('wc-credit-card-form');
+		wp_enqueue_script('wc-credit-card-form');
 
         $strSavePaymentMethod = isset($stdClass->default_save_payment_method) ? $stdClass->default_save_payment_method : 'no';
         $intChecked = false;
@@ -171,21 +171,21 @@ class Get
             'strSaveCardText' => $stdClass->save_payment_method_checkbox_text
 		);
 
-        if ($stdClass->description) {
-            echo wpautop(wp_kses_post($stdClass->description));
-        }
-
         if ($intShowSavedCard) {
             $stdClass->tokenization_script();
             $stdClass->saved_payment_methods();
         }
 
         echo self::Template('payment-field', 'page', $arrVariables);
+
+        if ($stdClass->description) {
+            echo wpautop(wp_kses_post($stdClass->description));
+        }
     }
 
     public static function Template($strTemplateName, $strFolderName='', $arrVariables=array())
     {
-        $strTemplateRoot = CWTAPPAY_DIR.'/templates/';
+		$strTemplateRoot = CWTAPPAY_DIR.'/templates/';
         $strTemplateRoot = apply_filters(Handler::ID.'_template-root', $strTemplateRoot, $strTemplateName, $strFolderName);
         $strFilePath = $strTemplateRoot.$strFolderName.'/'.$strTemplateName.'.php';
 
@@ -231,7 +231,7 @@ class Get
 
     public static function PaymentOptions(&$stdClass)
     {
-        foreach ($stdClass->form_fields as $key => $value) {
+		foreach ($stdClass->form_fields as $key => $value) {
             if ($value['type'] === 'select' || $value['type'] === 'multiselect') {
                 $stdClass->form_fields[$key]['options'] = apply_filters('cw-tappay_form-field_'.$key, $stdClass->form_fields[$key]['options']);
             }
@@ -261,7 +261,7 @@ class Get
 
     public static function PostURL()
     {
-        return 'https://auth.woocloud.io/TapPay/tappay.php?type=tappaydata';
+   		return 'https://auth.woocloud.io/TapPay/tappay.php?type=tappaydata';
     }
 
     public static function ExpiryDate($strDate)
@@ -369,7 +369,7 @@ class Get
 
     public static function PaymentVariables($stdClass, $stdOrder=false, $intOrderID=false)
     {
-        $arrCardHolderIndex = array(
+		$arrCardHolderIndex = array(
             'phone_number' => '',
             'name' => '',
             'email' => '',

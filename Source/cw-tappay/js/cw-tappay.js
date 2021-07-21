@@ -103,7 +103,6 @@ var CWTAPPAY;
 		},
 
 		LoadPaymentField: function () {
-
 			var CardViewStyle = this.GetStyle();
 
 			if (this.Fields == '3') {
@@ -201,13 +200,11 @@ var CWTAPPAY;
 				strFieldName = false;
 
 			var ReadyToPay = function () {
-
 				if (CWTAPPAY.ErrorMessages.length > 0) return;
 
 				TPDirect.card.getPrime(function (result) {
 
 					$('#place_order').removeAttr('disabled');
-
 					if (result.status !== 0) {
 						CWTAPPAY.InputErrorResult(result);
 

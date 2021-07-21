@@ -344,7 +344,7 @@ class Admin
 
     public static function AfterSuccessPayment($order, $stdResult, $stdClass, $strAdditionText=' ')
     {
-        $strExpiryDate = '';
+		$strExpiryDate = '';
 
         if (isset($stdResult->card_info->expiry_date)) {
             $arrExpiryDate = Get::ExpiryDate($stdResult->card_info->expiry_date);
@@ -364,7 +364,7 @@ class Admin
         /*
          * 執行第二次以上的 payment_url 不會回傳 $stdResult->auth_code
          */
-        $order->add_order_note(
+		$order->add_order_note(
 			'TapPay'.$strAdditionText.'刷卡成功
 			銀行端訂單編號: '.$stdResult->bank_transaction_id.'
 			付款金額: '.$stdResult->amount.'

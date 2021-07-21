@@ -27,7 +27,7 @@ define('CWTAPPAY_URL', plugin_dir_url(CWTAPPAY_File));
 class Handler
 {
     //const ID='cw-tappay';
-    const ID='cwtpfw';
+    const ID = 'cwtpfw';
 
     public function __construct()
     {

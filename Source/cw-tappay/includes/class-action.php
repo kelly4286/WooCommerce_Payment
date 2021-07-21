@@ -12,7 +12,7 @@ class Action
 
     public static function CheckReturn($strResponse, $arrPostData, $stdOrder, $stdClass)
     {
-        $strOrderType = Subscription::OrderType($stdOrder); 
+		$strOrderType = Subscription::OrderType($stdOrder);
 		
 		// 當訂單是 renewal order 時不作任何更動
         if ($strOrderType == 'renewal') {
@@ -42,7 +42,7 @@ class Action
 
     public static function AddCard($stdClass, $arrPostData)
     {
-        $intError = 0;
+		$intError = 0;
         $strResult = urldecode($arrPostData[Handler::ID.'_result']);
         $stdResult = Extend::DecodeJSON($strResult);
         $stdCardInfo = $stdResult->card;
@@ -203,7 +203,7 @@ class Action
 
     public static function RemoveCard()
     {
-        global $wp;
+		global $wp;
 
         $strError=false;
 

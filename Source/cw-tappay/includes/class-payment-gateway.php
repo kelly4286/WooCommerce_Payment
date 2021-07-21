@@ -3,23 +3,14 @@
 namespace cloudwp\TapPay;
 
 class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
-{
-    public function __construct()
+{    
+	public function __construct()
     {
         $this->id = Handler::ID;
         $this->icon	= '';
         $this->has_fields = true; // 一定要設為 true 否則信用卡欄位無法顯示
         $this->method_title	= 'TapPay Pro';
         $this->method_description = 'TapPay Pro';
-
-        // if ( isset($_GET['section']) && ( $_GET['section'] == Handler::ID || $_GET['section'] == 'wc_shipping_'.Handler::ID ) ) {
-        //     $stdCheckDate = Basic::CheckDate();
-        //     $this->method_description .= ' 服務到期日: '.$stdCheckDate->msg;
-        //     if ($stdCheckDate->error!='0') {
-        //         return;
-        //     }
-        // }
-
         $this->title = 'TapPay Pro';
 
         # Load the form fields
@@ -79,7 +70,7 @@ class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
 
     public function process_refund($intOrderID, $amount=null, $reason='')
     {
-        $order = wc_get_order($intOrderID);
+		$order = wc_get_order($intOrderID);
         $strResult = Extend::CancelAuthorized($intOrderID, $order, $this);
 
         $stdResult = Extend::DecodeJSON($strResult);
@@ -95,7 +86,7 @@ class WC_Gateway_TapPay extends \WC_Payment_Gateway_CC
 
     public function process_payment($order_id)
     {
-        $order = wc_get_order($order_id);
+      	$order = wc_get_order($order_id);
         $strReturnURL = CheckoutProcess::ReturnURL($order_id, $order, $this);
 
         return array(
